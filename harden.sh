@@ -100,7 +100,7 @@ EOF
 ./zram-config/install.bash sync
 
 
-cat - >> /bash-bashrc <<EOF
+cat - >> /etc/bash-bashrc <<EOF
 #alias dir='dir --color=auto'
 #alias egrep='egrep --color=auto'
 #alias fgrep='fgrep --color=auto'
