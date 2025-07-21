@@ -28,6 +28,7 @@ There are several amateur related pi based systems which are hardened to improve
 * Implement read only filesystems for /boot and any non-dynamic directories using standard raspbian approachs (pi-ro, pi-rw, etc) (In Progress)
 * Implement log rotation as needed for meshtasticd and related tools
 * Implement systemd as needed for key processes (In Progress)
+* Disable known processes which churn the disk (nightly apts downloads, etc)
 * Implement cron based nightly restarts for the meshtasticd process at a configurable time
 * Optionally implement periodic system reboots
 
