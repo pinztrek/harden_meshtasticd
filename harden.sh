@@ -53,11 +53,9 @@ cat - >> /etc/fstab <<EOF
 
 tmpfs	/tmp		tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
 tmpfs	/var/tmp	tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
-
-# Delete/comment out the next line for persistent Apache logs
-tmpfs	/var/log/apache2	tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=0775,size=32M 0 0
 EOF
 
+# Now activate the new ram tmp dirs
 mv /tmp /tmp.old
 mkdir -m 1777 /tmp
 mount /tmp
