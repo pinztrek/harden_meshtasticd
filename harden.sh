@@ -46,7 +46,7 @@ apt purge -y exim4-base exim4-config exim4-daemon-light
 # JAB tune for meshtasticd and tools like logrotate, Log2Ram, etc
 apt install -y lunzip jq wget
 #apt install -y asl3 asl3-menu asl3-update-nodelist allmon3 asl3-pi-appliance \
-	vim-nox
+	#vim-nox
 
 # Setup active dirs which do not need persistance as tmpfs
 cat - >> /etc/fstab <<EOF
@@ -62,6 +62,21 @@ mount /tmp
 mv /var/tmp /var/tmp.old
 mkdir -m 1777 /var/tmp
 mount /var/tmp
+
+# Don't need these running
+for service in bluetooth ModemManager
+do
+    systemctl stop $service
+    systemctl disable $service
+done
+
+for service in systemd-logind  systemd-timesyncd
+do
+    # restart them so they will use the new tmp
+    systemctl restart $service
+done
+# Now we can get rid of the old tmp dirs
+rm -rf /tmp.old /var/tmp.old
 
 
 
@@ -83,6 +98,24 @@ EOF
 
 ./zram-config/install.bash
 ./zram-config/install.bash sync
+
+
+cat - >> /bash-bashrc <<EOF
+#alias dir='dir --color=auto'
+#alias egrep='egrep --color=auto'
+#alias fgrep='fgrep --color=auto'
+#alias grep='grep --color=auto'
+alias ll='ls -l'
+set -o vi
+#alias ls='ls --color=auto'
+#alias rpi-ro='sudo sync ; sudo sync ; sudo sync ; sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot'
+#alias rpi-rw='sudo mount -o remount,rw / ; sudo mount -o remount,rw /boot'
+#alias vdir='vdir --color=auto'
+EOF
+
+# Now activate overlayfs
+#raspi-config nonint enable_overlayfs
+#echo "Reboot required to activate readonly filesystem"
 
 exit  #-------------------------------------------------------------------
 
