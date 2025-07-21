@@ -1,6 +1,6 @@
 # harden_meshtasticd
 
-The mestasticd subsystem running on SBC's like Raspberry Pi's are becoming more common. Typically debian based OS's like raspbian or Ubuntu are utilized, which is convenient due to their umbuiquity. But Debian or similar by itself is not ready for unattended remote operation and specifically with some of the aspects of meshtasticd can create reliability issues. 
+The meshtasticd subsystem running on SBC's like Raspberry Pi's are becoming more common. Typically debian based OS's like raspbian or Ubuntu are utilized, which is convenient due to their umbiquity. But Debian or similar by itself is not ready for unattended remote operation and specifically with some of the aspects of meshtasticd can create reliability issues. 
 
 # Project Goals
 There are several amateur related pi based systems which are hardened to improve reliability. Pi-star and Allstarlink 3 are two great examples, and longterm experience with both have demonstrated the advantages of their approaches. Likewise, longterm support of remote non-hardened debian systems have shown problem areas. This project intends to leverage known best practices from those projects and adverse experiences of the author with non hardended pi based systems.
