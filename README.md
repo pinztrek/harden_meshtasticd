@@ -22,17 +22,22 @@ There are several amateur related pi based systems which are hardened to improve
 # Approach
 
 * Script based tool to modify/tune a clean debian install to harden for long term meshtasticd usage
-* Implement ram based filesystems for highly active filesystems (/tmp & /var/log)
-* Implement persistance for key log file snapshots and meshtasticd config/state files using zram-config
-* Implement read only filesystems for /boot and any non-dynamic directories using standard raspbian approachs (pi-ro, pi-rw, etc)
+* Implement ram based filesystems for highly active filesystems (/tmp & /var/log) (Complete)
+* Implement persistance for key log file snapshots and meshtasticd config/state files using zram-config (Complete)
+* Relocate key system files/dirs to temp to allow RO FS (DHCP, etc) (in progress)
+* Implement read only filesystems for /boot and any non-dynamic directories using standard raspbian approachs (pi-ro, pi-rw, etc) (In Progress)
 * Implement log rotation as needed for meshtasticd and related tools
-* Implement systemd as needed for key processes
+* Implement systemd as needed for key processes (In Progress)
 * Implement cron based nightly restarts for the meshtasticd process at a configurable time
 * Optionally implement periodic system reboots
 
 # Installation
-* wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh
-* sudo bash ./harden.sh
+* Use raspberry_pi_imager to download Raspberry Pi OS Lite 64bit image. Make sure and set your login and network if needed.
+* Boot the image, and log in
+* Get the harden script:
+> wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh
+* Execute the script as root
+> sudo bash ./harden.sh
 
 # Acknowledgements
 Initial experience with pi-star on multiple DMR repeaters, and also AllstarLink 3 on repeaters led to understanding the approach they used. Both projects directly influenced this project's design, and some code fragments were utilzed from ASL3. 
