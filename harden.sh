@@ -7,7 +7,74 @@
 # GPL V3
 ########
 
+# Save params
+# Default values for options
+REBOOT=false
+RESTART=false
+NOMESH=false
+RWROOT=false
 
+# Function to display usage information
+usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo "Options:"
+    echo "  --reboot    : Perform a reboot after script execution."
+    echo "  --restart   : Restart a service after script execution."
+    echo "  --nomesh    : Disable mesh networking."
+    echo "  --rwroot    : Mount root filesystem as read-write."
+    echo "  --help      : Display this help message."
+    exit 1
+}
+
+# Parse command-line arguments
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        --reboot)
+            REBOOT=true
+            ;;
+        --restart)
+            RESTART=true
+            ;;
+        --nomesh)
+            NOMESH=true
+            ;;
+        --rwroot)
+            RWROOT=true
+            ;;
+        --help)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+    shift
+done
+
+
+# Example actions based on options
+if $REBOOT; then
+    echo "Performing reboot action..."
+    # sudo reboot
+fi
+
+if $RESTART; then
+    echo "Performing restart action..."
+    # sudo systemctl restart your_service_name
+fi
+
+if $NOMESH; then
+    echo "Disabling mesh networking..."
+    # Commands to disable mesh networking
+fi
+
+if $RWROOT; then
+    echo "Mounting root filesystem as read-write..."
+    # sudo mount -o remount,rw /
+fi
+
+echo "Script finished."
 # Source error handling, leave this in place
 set -e
 
@@ -63,8 +130,26 @@ mv /var/tmp /var/tmp.old
 mkdir -m 1777 /var/tmp
 mount /var/tmp
 
+# Now we can get rid of the old tmp dirs
+rm -rf /tmp.old /var/tmp.old
+
+# move key files/dirs to tmp to allow RO /
+# JAB this needs more work, edit cfg file
+rm -rf /var/spool /etc/resolv.conf
+
+mv /etc/resolv.conf /var/run/resolv.conf && ln -s /var/run/resolv.conf /etc/resolv.conf
+rm -rf /var/lib/dhcp && ln -s /var/run /var/lib/dhcp
+rm -rf /var/lib/dhcp5 && ln -s /var/run /var/lib/dhcp5
+rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
+# Comment this out if not using logrotate
+#rm -rf /var/lib/logrotate && ln -s /var/run /var/lib/logrotate
+rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
+ln -s /tmp /var/spool
+touch /tmp/dhcpcd.resolv.conf
+ln -s /tmp/dhcpcd.resolv.conf /etc/resolv.conf
+
 # Don't need these running
-for service in bluetooth ModemManager
+for service in bluetooth ModemManager rfkill
 do
     systemctl stop $service
     systemctl disable $service
@@ -75,16 +160,30 @@ do
     # restart them so they will use the new tmp
     systemctl restart $service
 done
-# Now we can get rid of the old tmp dirs
-rm -rf /tmp.old /var/tmp.old
 
+# Disable the auto apt stuff
+systemctl mask man-db.timer
+systemctl mask apt-daily.timer
+systemctl mask apt-daily-upgrade.timer
 
+echo "sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot/firmware" >> /etc/bash.bash_logout
 
 
 # Get and install zram-config
-# JAB refine this to use latest automatically
-wget https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
-#gh release download --repo ecdye/zram-config --pattern '*.tar.lz'
+
+REPO_OWNER="ecdye"
+REPO_NAME="zram-config"
+
+# Fetch information for the latest release
+API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
+
+DOWNLOAD_URL=$(curl -s "$API_URL" | \
+               jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
+
+echo "Fetching latest release information from: $DOWNLOAD_URL"
+curl -s -O $DOWNLOAD_URL
+
+# Now install the package
 mkdir -p zram-config && tar -xf zram-config*.tar.lz --strip-components=1 --directory=zram-config
 
 # JAB remove this once m*d installed
