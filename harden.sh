@@ -194,14 +194,14 @@ sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf
 REPO_OWNER="ecdye"
 REPO_NAME="zram-config"
 
-# use brute force for now
+# use brute force to get zram for now
 wget https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
 
 # Fetch information for the latest release
 API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
 
 #DOWNLOAD_URL=$(curl -s "$API_URL" | \
-               jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
+               #jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
 
 #echo "Fetching latest release information from: $DOWNLOAD_URL"
 #temporary disable till can sort
@@ -232,12 +232,13 @@ cat - >> /etc/bash.bashrc <<EOF
 alias ll='ls -l'
 set -o vi
 #alias ls='ls --color=auto'
-#alias rpi-ro='sudo sync ; sudo sync ; sudo sync ; sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot'
-#alias rpi-rw='sudo mount -o remount,rw / ; sudo mount -o remount,rw /boot'
+alias rpi-ro='sudo sync ; sudo sync ; sudo sync ; sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot'
+alias rpi-rw='sudo mount -o remount,rw / ; sudo mount -o remount,rw /boot'
 #alias vdir='vdir --color=auto'
 EOF
 
 # disable rfkill now
+echo "disable rfkill now"
 sudo systemctl mask systemd-rfkill.socket
 sudo systemctl disable systemd-rfkill.service
 
