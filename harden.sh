@@ -120,6 +120,8 @@ cat - >> /etc/fstab <<EOF
 
 tmpfs	/tmp		tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
 tmpfs	/var/tmp	tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
+# /opt/zram holds bind points and must be rw
+tmpfs	/opt/zram	tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=15M 0 0
 EOF
 
 # Now activate the new ram tmp dirs
@@ -129,9 +131,11 @@ mount /tmp
 mv /var/tmp /var/tmp.old
 mkdir -m 1777 /var/tmp
 mount /var/tmp
+mkdir -p -m 1777 /opt/zram
+mount /opt/zram
 
 # Now we can get rid of the old tmp dirs
-rm -rf /tmp.old /var/tmp.old
+rm -rf /tmp.old /var/tmp.old 
 
 # move key files/dirs to tmp to allow RO /
 # JAB this needs more work, edit cfg file
@@ -143,7 +147,7 @@ rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
 # Comment this out if not using logrotate
 #rm -rf /var/lib/logrotate && ln -s /var/run /var/lib/logrotate
 rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
-ln -s /tmp /var/spool
+rm -rf /var/spool && ln -s /tmp /var/spool
 
 # Deal with randomseed
 echo "Deal with randomseed"
