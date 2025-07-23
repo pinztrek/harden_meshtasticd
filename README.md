@@ -35,9 +35,8 @@ There are several amateur related pi based systems which are hardened to improve
 # Installation
 * Use raspberry_pi_imager to download Raspberry Pi OS Lite 64bit image. Make sure and set your login and network if needed.
 * Boot the image, and log in
-* Get the harden script:
+* Get the harden script and execute as root:
 > wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh
-* Execute the script as root
 > sudo bash ./harden.sh
 
 # Acknowledgements
