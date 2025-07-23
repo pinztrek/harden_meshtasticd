@@ -135,9 +135,8 @@ rm -rf /tmp.old /var/tmp.old
 
 # move key files/dirs to tmp to allow RO /
 # JAB this needs more work, edit cfg file
-rm -rf /var/spool /etc/resolv.conf
+rm -rf /var/spool #/etc/resolv.conf
 
-mv /etc/resolv.conf /var/run/resolv.conf && ln -s /var/run/resolv.conf /etc/resolv.conf
 rm -rf /var/lib/dhcp && ln -s /var/run /var/lib/dhcp
 rm -rf /var/lib/dhcp5 && ln -s /var/run /var/lib/dhcp5
 rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
@@ -146,20 +145,9 @@ rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
 rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
 ln -s /tmp /var/spool
 
-# Deal with resolv.conf
-FILE="/etc/NetworkManager/NetworkManager.conf"
-TARGET_LINE="[main]"
-LINE_TO_ADD="rc-manager=file"
-# now do the replacement
-sed -i "/${TARGET_LINE}/a\\
-${LINE_TO_ADD}" "$FILE"
-
-sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
-# Just creating a symlink does not work
-#touch /tmp/dhcpcd.resolv.conf
-#ln -s /tmp/dhcpcd.resolv.conf /etc/resolv.conf
-
 # Deal with randomseed
+echo "Deal with randomseed"
+
 mv /var/lib/systemd/random-seed /tmp/systemd-random-seed && ln -s /tmp/systemd-random-seed /var/lib/systemd/random-seed
 # create a copy of the service, this will override the default
 cp /usr/lib/systemd/system/systemd-random-seed.service /etc/systemd/system
@@ -188,6 +176,17 @@ systemctl mask apt-daily.timer
 systemctl mask apt-daily-upgrade.timer
 
 echo "sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot/firmware" >> /etc/bash.bash_logout
+
+# Deal with resolv.conf
+echo "Deal with resolv.conf"
+FILE="/etc/NetworkManager/NetworkManager.conf"
+TARGET_LINE="[main]"
+LINE_TO_ADD="rc-manager=file"
+# now do the replacement
+sed -i "/${TARGET_LINE}/a\\
+${LINE_TO_ADD}" "$FILE"
+
+sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
 
 
 # Get and install zram-config
