@@ -143,8 +143,7 @@ rm -rf /var/lib/dhcp5 && ln -s /var/run /var/lib/dhcp5
 rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
 # Comment this out if not using logrotate
 #rm -rf /var/lib/logrotate && ln -s /var/run /var/lib/logrotate
-rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/Nsudo systemctl disable systemd-rfkill.service
-sudo systemctl mask systemd-rfkill.socketetworkManager
+rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
 ln -s /tmp /var/spool
 
 # Deal with resolv.conf
@@ -235,8 +234,8 @@ set -o vi
 EOF
 
 # disable rfkill now
-sudo systemctl disable systemd-rfkill.service
 sudo systemctl mask systemd-rfkill.socket
+sudo systemctl disable systemd-rfkill.service
 
 # Now activate overlayfs
 #raspi-config nonint enable_overlayfs
