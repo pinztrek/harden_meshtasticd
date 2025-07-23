@@ -155,7 +155,8 @@ FILE="/etc/systemd/system/systemd-random-seed.service"
 TARGET_LINE='RemainAfterExit=yes'
 LINE_TO_ADD='ExecStartPre=/bin/echo "" >/tmp/systemd-random-seed'
 # now do the replacement
-sed -i "/$TARGET_LINE/a\$LINE_TO_ADD" $FILE
+sed -i "/$TARGET_LINE/a\
+    $LINE_TO_ADD" $FILE
 
 # Don't need these running
 for service in bluetooth ModemManager
@@ -179,12 +180,12 @@ echo "sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot/firmware" >> /
 
 # Deal with resolv.conf
 echo "Deal with resolv.conf"
-FILE="/etc/NetworkManager/NetworkManager.conf"
-TARGET_LINE="[main]"
+cp /etc/NetworkManager/NetworkManager.conf /etc/NetworkManager/conf.d
+FILE="/etc/NetworkManager/conf.d/NetworkManager.conf"
 LINE_TO_ADD="rc-manager=file"
 # now do the replacement
-sed -i "/${TARGET_LINE}/a\\
-${LINE_TO_ADD}" "$FILE"
+sed -i '/\[main\]/a\
+'"$LINE_TO_ADD" $FILE
 
 sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
 
