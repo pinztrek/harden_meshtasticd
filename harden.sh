@@ -143,13 +143,35 @@ rm -rf /var/lib/dhcp5 && ln -s /var/run /var/lib/dhcp5
 rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
 # Comment this out if not using logrotate
 #rm -rf /var/lib/logrotate && ln -s /var/run /var/lib/logrotate
-rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
+rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/Nsudo systemctl disable systemd-rfkill.service
+sudo systemctl mask systemd-rfkill.socketetworkManager
 ln -s /tmp /var/spool
-touch /tmp/dhcpcd.resolv.conf
-ln -s /tmp/dhcpcd.resolv.conf /etc/resolv.conf
+
+# Deal with resolv.conf
+FILE="/etc/NetworkManager/NetworkManager.conf"
+TARGET_LINE="[main]"
+LINE_TO_ADD="rc-manager=file"
+# now do the replacement
+sed -i "/${TARGET_LINE}/a\\
+${LINE_TO_ADD}" "$FILE"
+
+sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
+# Just creating a symlink does not work
+#touch /tmp/dhcpcd.resolv.conf
+#ln -s /tmp/dhcpcd.resolv.conf /etc/resolv.conf
+
+# Deal with randomseed
+mv /var/lib/systemd/random-seed /tmp/systemd-random-seed && ln -s /tmp/systemd-random-seed /var/lib/systemd/random-seed
+# create a copy of the service, this will override the default
+cp /usr/lib/systemd/system/systemd-random-seed.service /etc/systemd/system
+FILE="/etc/systemd/system/systemd-random-seed.service"
+TARGET_LINE='RemainAfterExit=yes'
+LINE_TO_ADD='ExecStartPre=/bin/echo "" >/tmp/systemd-random-seed'
+# now do the replacement
+sed -i "/$TARGET_LINE/a\$LINE_TO_ADD" $FILE
 
 # Don't need these running
-for service in bluetooth ModemManager rfkill
+for service in bluetooth ModemManager
 do
     systemctl stop $service
     systemctl disable $service
@@ -211,6 +233,10 @@ set -o vi
 #alias rpi-rw='sudo mount -o remount,rw / ; sudo mount -o remount,rw /boot'
 #alias vdir='vdir --color=auto'
 EOF
+
+# disable rfkill now
+sudo systemctl disable systemd-rfkill.service
+sudo systemctl mask systemd-rfkill.socket
 
 # Now activate overlayfs
 #raspi-config nonint enable_overlayfs
