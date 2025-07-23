@@ -211,6 +211,8 @@ API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest
 
 # Now install the package
 mkdir -p zram-config && tar -xf zram-config*.tar.lz --strip-components=1 --directory=zram-config
+# relocate the zram log to allow ro filesystem (can't be in zram itself)
+sed s_/usr\/local\/share/zram-config/log_/run_ .zram-config/zram-config
 
 # JAB remove this once m*d installed
 mkdir -p /var/lib/portduinio
