@@ -201,7 +201,11 @@ DOWNLOAD_URL=$(curl -s "$API_URL" | \
                jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
 
 echo "Fetching latest release information from: $DOWNLOAD_URL"
-curl -s -O $DOWNLOAD_URL
+#temporary disable till can sort
+#curl -s -O $DOWNLOAD_URL
+# use brute force for now
+wget https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
+
 
 # Now install the package
 mkdir -p zram-config && tar -xf zram-config*.tar.lz --strip-components=1 --directory=zram-config
@@ -219,7 +223,7 @@ EOF
 ./zram-config/install.bash sync
 
 
-cat - >> /etc/bash-bashrc <<EOF
+cat - >> /etc/bash.bashrc <<EOF
 #alias dir='dir --color=auto'
 #alias egrep='egrep --color=auto'
 #alias fgrep='fgrep --color=auto'
