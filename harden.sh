@@ -194,17 +194,18 @@ sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf
 REPO_OWNER="ecdye"
 REPO_NAME="zram-config"
 
+# use brute force for now
+wget https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
+
 # Fetch information for the latest release
 API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
 
-DOWNLOAD_URL=$(curl -s "$API_URL" | \
+#DOWNLOAD_URL=$(curl -s "$API_URL" | \
                jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
 
-echo "Fetching latest release information from: $DOWNLOAD_URL"
+#echo "Fetching latest release information from: $DOWNLOAD_URL"
 #temporary disable till can sort
 #curl -s -O $DOWNLOAD_URL
-# use brute force for now
-wget https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
 
 
 # Now install the package
