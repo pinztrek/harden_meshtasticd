@@ -23,3 +23,5 @@ pip install --break-system-packages meshtastic
 cp utils/* /usr/local/bin
 
 echo "Copy the appropriate config file from /etc/meshtasticd/available.d to the config.d file"
+echo "Then start meshtasticd with:"
+echo "systemctl start meshtasticd
