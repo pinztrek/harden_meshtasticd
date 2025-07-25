@@ -26,32 +26,69 @@ usage() {
     exit 1
 }
 
-# Parse command-line arguments
+# Process command-line arguments
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
-        --reboot)
-            REBOOT=true
+        # Short options
+        -m|--mesh)
+            MESH=1
+            shift # Remove param from processing
+            echo "We will install meshtasticd"
             ;;
-        --restart)
-            RESTART=true
+        -s|--sanemesh)
+            SANEMESH=1
+            shift # Remove param from processing
+            echo "We will set sane mesh defaults for the US"
             ;;
-        --nomesh)
-            NOMESH=true
+        -n|--nebra)
+            NEBRA=1
+            shift # Remove param from processing
+            echo "We will set sane mesh defaults for the US"
             ;;
-        --rwroot)
-            RWROOT=true
+
+        -t|--toad)
+            TOAD=1
+            shift # Remove param from processing
+            echo "We will set mesh config to use a meshtoad"
             ;;
-        --help)
+
+        --nebramesh)
+            NEBRAMESH=1
+            shift # Remove param from processing
+            echo "We will set mesh config to use a NebraMesh hat"
+            ;;
+
+        -g|--gps)
+            GPS=1
+            shift # Remove param from processing
+            echo "We will set mesh config to use a GPS"
+            ;;
+
+        #-i|--input)
+            # Check if value is provided
+            #if [[ -z "$2" || "$2" =~ ^- ]]; then
+                #echo "Error: Option '$1' requires an argument." >&2
+                #exit 1
+            #fi
+            #INPUT_DIR="$2"
+            #shift 2 # Remove -i/--input AND its value
+            #;;
+        # Help option
+        -h|--help)
             usage
             ;;
-        *)
-            echo "Unknown option: $1"
-            usage
+        # Catch all for unknown options or arguments
+        -*)
+            echo "Error: Unknown option '$1'" >&2
+            exit 1
+            ;;
+        *) # Positional arguments
+            # If you want to collect positional arguments after options:
+            POSITIONAL_ARGS+=("$1")
+            shift # Remove the positional argument
             ;;
     esac
-    shift
 done
-
 
 # Example actions based on options
 if $REBOOT; then
