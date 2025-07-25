@@ -1,0 +1,2 @@
+#!/bin/bash
+meshtastic --export-config  | grep -v "No Serial Mesh" > /etc/meshtasticd/radio.yaml
