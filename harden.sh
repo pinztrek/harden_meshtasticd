@@ -111,7 +111,7 @@ apt remove -y iptables exim4-base exim4-config exim4-daemon-light
 apt autoremove -y
 apt purge -y exim4-base exim4-config exim4-daemon-light
 # JAB tune for meshtasticd and tools like logrotate, Log2Ram, etc
-apt install -y lunzip jq wget
+apt install -y lunzip jq wget git
 #apt install -y asl3 asl3-menu asl3-update-nodelist allmon3 asl3-pi-appliance \
 	#vim-nox
 
@@ -246,12 +246,12 @@ EOF
 
 # disable rfkill now
 echo "disable rfkill now"
-sudo systemctl mask systemd-rfkill.socket
-sudo systemctl disable systemd-rfkill.service
+systemctl mask systemd-rfkill.socket
+systemctl disable systemd-rfkill.service
 
-# Now activate overlayfs
-#raspi-config nonint enable_overlayfs
-#echo "Reboot required to activate readonly filesystem"
+# get the rest of the files for future usage
+git clone https://github.com/pinztrek/harden_meshtasticd
+
 
 exit  #-------------------------------------------------------------------
 
