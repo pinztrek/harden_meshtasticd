@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # mesh.sh
 
+# This script is intended to be executed from within the cloned git archive
+# of harden_meshtasticd and will error if executed outside of that dir
+
 # Set up for meshtasticd deb install
 echo 'deb http://download.opensuse.org/repositories/network:/Meshtastic:/beta/Debian_12/ /' | sudo tee /etc/apt/sources.list.d/network:Meshtastic:beta.list
 

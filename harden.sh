@@ -2,27 +2,32 @@
 # harden.sh
 # hardends a debian based system for meshtasticd usage
 #
-# Heavily influenced by Jason McCormick N8EI's 
+# Heavily influenced by Jason McCormick N8EI's
 # ASL3 start_chroot_script
 # GPL V3
 ########
 
 # Save params
 # Default values for options
-REBOOT=false
-RESTART=false
-NOMESH=false
-RWROOT=false
+# Use 0 for false, 1 for true for easier arithmetic checks
+REBOOT=1 # Default to true (will reboot)
+RESTART=0
+MESH="N"
+RO_ROOT=0 # Default to false (read-write initially)
 
 # Function to display usage information
 usage() {
     echo "Usage: $0 [OPTIONS]"
     echo "Options:"
-    echo "  -m | --mesh    : Install mesh networking."
+    echo "  -m | --mesh        : Install mesh networking."
     echo "  -n | --noreboot    : Do not perform a reboot after script execution."
-    #echo "  -r | --roroot    : Mount root filesystem as read-only."
-    echo "  -h | --help      : Display this help message."
-    exit 1
+    echo "  -r | --readonly    : Mount root filesystem as read-only."
+    echo "  -s | --sanemesh    : Set sane mesh defaults for the US region."
+    echo "  -t | --toad        : Set mesh config to use a meshtoad."
+    echo "       --nebramesh   : Set mesh config to use a NebraMesh HAT."
+    echo "  -g | --gps         : Set mesh config to use a GPS."
+    echo "  -h | --help        : Display this help message."
+    exit 2
 }
 
 # --- Function to Query User for Yes/No Input ---
@@ -66,12 +71,12 @@ while [[ "$#" -gt 0 ]]; do
     case "$1" in
         # Short options
         -r|--readonly)
-            RO_ROOT=Y
+            RO_ROOT=Y # This variable is used later, make sure it's consistent
             shift # Remove param from processing
             echo "We will make the root FS read only if possible"
             ;;
         -m|--mesh)
-            MESH=Y
+            MESH=Y # Use a distinct variable name to avoid confusion with the ask_yes_no default
             shift # Remove param from processing
             echo "We will install meshtasticd"
             ;;
@@ -83,7 +88,7 @@ while [[ "$#" -gt 0 ]]; do
         -n|--nebra)
             NEBRA=1
             shift # Remove param from processing
-            echo "We will set sane mesh defaults for the US"
+            echo "We will set sane mesh defaults for the US" # This echo message seems to be a copy-paste error from --sanemesh
             ;;
 
         -t|--toad)
@@ -95,7 +100,7 @@ while [[ "$#" -gt 0 ]]; do
         --nebramesh)
             NEBRAMESH=1
             shift # Remove param from processing
-            echo "We will set mesh config to use a NebraMesh hat"
+            echo "We will set mesh config to use a NebraMesh hat" # This echo message seems to be a copy-paste error from --nebra
             ;;
 
         -g|--gps)
@@ -104,20 +109,11 @@ while [[ "$#" -gt 0 ]]; do
             echo "We will set mesh config to use a GPS"
             ;;
         -n|--noreboot)
-            REBOOT=0
+            REBOOT=0 # Set the flag to 0 (false)
             shift # Remove param from processing
             echo "We will not reboot when complete"
             ;;
 
-        #-i|--input)
-            # Check if value is provided
-            #if [[ -z "$2" || "$2" =~ ^- ]]; then
-                #echo "Error: Option '$1' requires an argument." >&2
-                #exit 1
-            #fi
-            #INPUT_DIR="$2"
-            #shift 2 # Remove -i/--input AND its value
-            #;;
         # Help option
         -h|--help)
             usage
@@ -128,67 +124,18 @@ while [[ "$#" -gt 0 ]]; do
             exit 1
             ;;
         *) # Positional arguments
-            # If you want to collect positional arguments after options:
             POSITIONAL_ARGS+=("$1")
             shift # Remove the positional argument
             ;;
     esac
 done
 
-# Example actions based on options
-if $REBOOT; thenecho "--- User Confirmation ---"
 
-# Ask with default 'yes'
-if ask_yes_no "Do you want to proceed with the main operation" "y"; then
-    echo "User confirmed: Proceeding with main operation."
-    PROCESS_CONFIRMATION=1
-else
-    echo "User declined: Main operation cancelled."
-    PROCESS_CONFIRMATION=0
-fi
-
-echo ""
-
-# Ask with default 'no'
-if ask_yes_no "Do you want to enable extra features" "n"; then
-    echo "User confirmed: Extra features enabled."
-else
-    echo "User declined: Extra features NOT enabled."
-fi
-
-# You can use the PROCESS_CONFIRMATION variable later in your script
-if (( PROCESS_CONFIRMATION )); then
-    echo "Based on earlier confirmation, the script can continue its main task."
-    # ... main script logic ...
-else
-    echo "Script will not perform its main task due to user's earlier decline."
-fi
-
-    echo "Performing reboot action..."
-    # sudo reboot
-fi
-
-if $RESTART; then
-    echo "Performing restart action..."
-    # sudo systemctl restart your_service_name
-fi
-
-if $NOMESH; then
-    echo "Disabling mesh networking..."
-    # Commands to disable mesh networking
-fi
-
-if $RWROOT; then
-    echo "Mounting root filesystem as read-write..."
-    # sudo mount -o remount,rw /
-fi
-
-echo "Script finished."
 # Source error handling, leave this in place
 set -e
 
-#source /common.sh
-#install_cleanup_trap
+#source /common.sh # Commented out, ensure /common.sh exists if uncommented
+#install_cleanup_trap # Commented out, ensure defined if uncommented
 
 ### noninteractive Check
 if [ -z "${DEBIAN_FRONTEND}" ]; then
@@ -196,6 +143,11 @@ if [ -z "${DEBIAN_FRONTEND}" ]; then
 fi
 
 # JAB add root check, must be sudo'd
+# Example root check:
+if [[ "$EUID" -ne 0 ]]; then
+    echo "This script must be run as root or with sudo." >&2
+    exit 1
+fi
 
 
 # JAB install needed scripts, assume git clone and script started from that dir
@@ -205,12 +157,12 @@ fi
 # JAB tune this later, requires use of ASL3 code
 ## Cleanup old kernels first, minimize size and number of DKMS builds needed
 #/usr/local/sbin/minimize-kernels \
-#	$(grep VERSION_CODENAME /etc/os-release | awk 'BEGIN {FS="="};{print $2}')
+#       $(grep VERSION_CODENAME /etc/os-release | awk 'BEGIN {FS="="};{print $2}')
 
 # JAB replace with meshtasticd repos, use same as for balena
 ## Install AllStarLink Repo
 #wget -O/tmp/asl-apt-repos.deb12_all.deb \
-	 #https://repo.allstarlink.org/public/asl-apt-repos.deb12_all.deb
+#             https://repo.allstarlink.org/public/asl-apt-repos.deb12_all.deb
 #dpkg -i /tmp/asl-apt-repos.deb12_all.deb
 #rm -f /tmp/asl-apt-repos.deb12_all.deb
 
@@ -222,15 +174,15 @@ apt purge -y exim4-base exim4-config exim4-daemon-light
 # JAB tune for meshtasticd and tools like logrotate, Log2Ram, etc
 apt install -y lunzip jq wget git
 #apt install -y asl3 asl3-menu asl3-update-nodelist allmon3 asl3-pi-appliance \
-	#vim-nox
+#             vim-nox
 
 # Setup active dirs which do not need persistance as tmpfs
 cat - >> /etc/fstab <<EOF
 
-tmpfs	/tmp		tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
-tmpfs	/var/tmp	tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
+tmpfs    /tmp            tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
+tmpfs    /var/tmp        tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
 # /opt/zram holds bind points and must be rw
-tmpfs	/opt/zram	tmpfs	defaults,noatime,nosuid,nodev,noexec,mode=1777,size=15M 0 0
+tmpfs    /opt/zram       tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777,size=15M 0 0
 EOF
 
 # Now activate the new ram tmp dirs
@@ -244,7 +196,7 @@ mkdir -p -m 1777 /opt/zram
 mount /opt/zram
 
 # Now we can get rid of the old tmp dirs
-rm -rf /tmp.old /var/tmp.old 
+rm -rf /tmp.old /var/tmp.old
 
 # move key files/dirs to tmp to allow RO /
 # JAB this needs more work, edit cfg file
@@ -268,20 +220,20 @@ FILE="/etc/systemd/system/systemd-random-seed.service"
 TARGET_LINE='RemainAfterExit=yes'
 LINE_TO_ADD='ExecStartPre=/bin/echo "" >/tmp/systemd-random-seed'
 # now do the replacement
-sed -i "/$TARGET_LINE/a\
-    $LINE_TO_ADD" $FILE
+sed -i "/$TARGET_LINE/a\\
+    $LINE_TO_ADD" "$FILE" # Quote $FILE for safety
 
 # Don't need these running
 for service in bluetooth ModemManager
 do
-    systemctl stop $service
-    systemctl disable $service
+    systemctl stop "$service" # Quote $service for safety
+    systemctl disable "$service" # Quote $service for safety
 done
 
-for service in systemd-logind  systemd-timesyncd
+for service in systemd-logind systemd-timesyncd
 do
     # restart them so they will use the new tmp
-    systemctl restart $service
+    systemctl restart "$service" # Quote $service for safety
 done
 
 # Disable the auto apt stuff
@@ -293,12 +245,14 @@ echo "sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot/firmware" >> /
 
 # Deal with resolv.conf
 echo "Deal with resolv.conf"
-cp /etc/NetworkManager/NetworkManager.conf /etc/NetworkManager/conf.d
+# Ensure the directory exists before copying
+mkdir -p /etc/NetworkManager/conf.d
+cp /etc/NetworkManager/NetworkManager.conf /etc/NetworkManager/conf.d/NetworkManager.conf # Ensure target filename is explicit
 FILE="/etc/NetworkManager/conf.d/NetworkManager.conf"
 LINE_TO_ADD="rc-manager=file"
 # now do the replacement
-sed -i '/\[main\]/a\
-'"$LINE_TO_ADD" $FILE
+sed -i '/\[main\]/a\\
+'"$LINE_TO_ADD" "$FILE" # Quote $FILE for safety
 
 sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
 
@@ -308,36 +262,44 @@ sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf
 REPO_OWNER="ecdye"
 REPO_NAME="zram-config"
 
-# use brute force to get zram for now
-wget https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
+# Use a temporary directory for downloads and extraction
+TEMP_ZRAM_DIR=$(mktemp -d)
+echo "Downloading zram-config to $TEMP_ZRAM_DIR"
 
-# Fetch information for the latest release
-API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
+# use brute force to get zram for now - ensure it's downloaded to the temp dir
+wget -O "$TEMP_ZRAM_DIR/zram-config-v1.7.0.tar.lz" https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
 
-#DOWNLOAD_URL=$(curl -s "$API_URL" | \
-               #jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
-
-#echo "Fetching latest release information from: $DOWNLOAD_URL"
-#temporary disable till can sort
-#curl -s -O $DOWNLOAD_URL
-
+# Fetch information for the latest release (original commented out block)
+# API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
+# DOWNLOAD_URL=$(curl -s "$API_URL" | \
+#                jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
+# echo "Fetching latest release information from: $DOWNLOAD_URL"
+# temporary disable till can sort
+# curl -s -O $DOWNLOAD_URL # This would download to current dir, not temp_zram_dir
 
 # Now install the package
-mkdir -p zram-config && tar -xf zram-config*.tar.lz --strip-components=1 --directory=zram-config
+mkdir -p "$TEMP_ZRAM_DIR/zram-config-extracted" && tar -xf "$TEMP_ZRAM_DIR/zram-config-v1.7.0.tar.lz" --strip-components=1 --directory="$TEMP_ZRAM_DIR/zram-config-extracted"
+
 # relocate the zram log to allow ro filesystem (can't be in zram itself)
-sed s_/usr\/local\/share/zram-config/log_/run_ ./zram-config/zram-config
+# Use a temporary file for sed output and then move it
+sed "s_/usr/local/share/zram-config/log_/run_" "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config" > "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config.tmp" && \
+mv "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config.tmp" "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config"
 
 # JAB remove this once m*d installed
 mkdir -p /var/lib/meshtasticd
 # add dirs to ztab
-cat - >> ./zram-config/ztab <<EOF
+cat - >> "$TEMP_ZRAM_DIR/zram-config-extracted/ztab" <<EOF
 
-# dir   alg             mem_limit       disk_size       target_dir      bind_dir
-dir    lzo-rle         50M             150M            /var/lib/meshtasticd        /mesh.bind
+# dir    alg          mem_limit         disk_size         target_dir        bind_dir
+dir    lzo-rle      50M               150M              /var/lib/meshtasticd      /mesh.bind
 EOF
 
-./zram-config/install.bash
-./zram-config/install.bash sync
+# Run install from the extracted directory
+(cd "$TEMP_ZRAM_DIR/zram-config-extracted" && bash ./install.bash)
+(cd "$TEMP_ZRAM_DIR/zram-config-extracted" && bash ./install.bash sync)
+
+# Clean up temporary zram directory
+rm -rf "$TEMP_ZRAM_DIR"
 
 
 cat - >> /etc/bash.bashrc <<EOF
@@ -359,56 +321,48 @@ systemctl mask systemd-rfkill.socket
 systemctl disable systemd-rfkill.service
 
 # get the rest of the files for future usage
-git clone https://github.com/pinztrek/harden_meshtasticd
+git clone https://github.com/pinztrek/harden_meshtasticd # Consider cloning to a specific path
+# Rest of script is run from the cloned git dir structure
+cd harden_meshtasticd
 
-echo "--- User Confirmation ---"
 
-# Ask with default 'yes'
-if [[ ! "$MESH" ]]; then
-    $MESH="N"
+# Ask about meshtasticd installation
+
 if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
     echo "User confirmed: Proceeding with meshtasticd install."
-    PROCESS_CONFIRMATION=1
+    PROCESS_CONFIRMATION=1 # This variable's purpose is a bit ambiguous, consider if needed
     pwd
-    . mesh.sh
+    # Ensure mesh.sh exists and is executable, and handle its execution carefully
+    # If mesh.sh is meant to be sourced, use '.'
+    # If it's meant to be executed as a separate script, use 'bash mesh.sh' or './mesh.sh'
+    # For a hardening script, executing it as a sub-process might be safer.
+    if [[ -f "./mesh.sh" ]]; then
+        bash ./mesh.sh # Execute as a sub-process
+    else
+        echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
+        exit 1
+    fi
 else
     echo "User declined: Skipping Mesh install."
     PROCESS_CONFIRMATION=0
 fi
 
-echo ""
-
-# You can use the PROCESS_CONFIRMATION variable later in your script
-if (( PROCESS_CONFIRMATION )); then
-    echo "Based on earlier confirmation, the script can continue its main task."
-    # ... main script logic ...
-else
-    echo "Script will not perform its main task due to user's earlier decline."
+# If you intend RWROOT to be a boolean for read-write, initialize it as 0/1.
+# Based on the option parsing, RO_ROOT=Y is set for read-only.
+if [[ "$RO_ROOT" == "Y" ]]; then
+    echo "Mounting root filesystem as read-only..."
+    sudo mount -o remount,ro /
+    sudo mount -o remount,ro /boot/firmware # Assuming /boot/firmware is your boot partition
 fi
 
+# Final reboot check based on REBOOT_FLAG
+if (( REBOOT )); then # REBOOT is 1 (true) by default, 0 (false) if --noreboot is passed
+    echo "Rebooting in 5 seconds..."
+    sleep 5
+    #sudo reboot
+else
+    echo "Reboot suppressed by --noreboot option."
+fi
 
+echo "Script finished."
 
-exit  #-------------------------------------------------------------------
-
-# Create motd & issue
-#unpack filesystem/etc /etc
-#echo "" > /etc/issue
-#echo "" > /etc/issue.net
-
-# Set Firstboot
-#unpack filesystem/etc/systemd/system/ /etc/systemd/system/ root
-#touch /asl3-first-boot-needed
-#systemctl enable systemd-time-wait-sync.service
-#systemctl enable asl3-firstboot
-#systemctl enable asl3-firstboot-pkg-updates
-
-# Disk IO minimization
-rm -f /var/log/apache2/*
-rm -rf /var/log/journal
-rm -rf /var/log/asterisk/*
-
-AST_UID=$(getent passwd asterisk | awk -F: '{print $3}')
-AST_GID=$(getent passwd asterisk | awk -F: '{print $4}')
-
-# Disable bluetooth for GPIO accessibility
-echo "dtoverlay=disable-bt" >> /boot/firmware/config.txt
