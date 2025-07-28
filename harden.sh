@@ -177,6 +177,10 @@ apt install -y lunzip jq wget git
 #             vim-nox
 
 # Setup active dirs which do not need persistance as tmpfs
+if [[ "`grep /etc/fstab zram`" ]]; then
+    echo "Script has already run, exiting"
+    exit
+fi
 cat - >> /etc/fstab <<EOF
 
 tmpfs    /tmp            tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
@@ -262,12 +266,10 @@ sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf
 REPO_OWNER="ecdye"
 REPO_NAME="zram-config"
 
-# Use a temporary directory for downloads and extraction
-TEMP_ZRAM_DIR=$(mktemp -d)
-echo "Downloading zram-config to $TEMP_ZRAM_DIR"
+echo "Downloading zram-config"
 
 # use brute force to get zram for now - ensure it's downloaded to the temp dir
-wget -O "$TEMP_ZRAM_DIR/zram-config-v1.7.0.tar.lz" https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
+wget -O "zram-config-v1.7.0.tar.lz" https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
 
 # Fetch information for the latest release (original commented out block)
 # API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
@@ -278,28 +280,25 @@ wget -O "$TEMP_ZRAM_DIR/zram-config-v1.7.0.tar.lz" https://github.com/ecdye/zram
 # curl -s -O $DOWNLOAD_URL # This would download to current dir, not temp_zram_dir
 
 # Now install the package
-mkdir -p "$TEMP_ZRAM_DIR/zram-config-extracted" && tar -xf "$TEMP_ZRAM_DIR/zram-config-v1.7.0.tar.lz" --strip-components=1 --directory="$TEMP_ZRAM_DIR/zram-config-extracted"
+tar -xf zram-config-v1.7.0.tar.lz --strip-components=1 
 
 # relocate the zram log to allow ro filesystem (can't be in zram itself)
 # Use a temporary file for sed output and then move it
-sed "s_/usr/local/share/zram-config/log_/run_" "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config" > "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config.tmp" && \
-mv "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config.tmp" "$TEMP_ZRAM_DIR/zram-config-extracted/zram-config"
+sed -i "s_/usr/local/share/zram-config/log_/run_" "zram-config"  
 
 # JAB remove this once m*d installed
 mkdir -p /var/lib/meshtasticd
 # add dirs to ztab
-cat - >> "$TEMP_ZRAM_DIR/zram-config-extracted/ztab" <<EOF
+cat - >> ztab <<EOF
 
 # dir    alg          mem_limit         disk_size         target_dir        bind_dir
 dir    lzo-rle      50M               150M              /var/lib/meshtasticd      /mesh.bind
 EOF
 
 # Run install from the extracted directory
-(cd "$TEMP_ZRAM_DIR/zram-config-extracted" && bash ./install.bash)
-(cd "$TEMP_ZRAM_DIR/zram-config-extracted" && bash ./install.bash sync)
+bash ./install.bash
+bash ./install.bash sync
 
-# Clean up temporary zram directory
-rm -rf "$TEMP_ZRAM_DIR"
 
 
 cat - >> /etc/bash.bashrc <<EOF
@@ -341,6 +340,10 @@ if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
     else
         echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
         exit 1
+    fi
+    if [[ "SANEMESH" ]]; then
+        echo "Setting radio to sane US settings"
+        bash utils/sane_radio_US.sh
     fi
 else
     echo "User declined: Skipping Mesh install."

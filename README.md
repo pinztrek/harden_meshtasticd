@@ -53,7 +53,6 @@ This script supports the following command-line options to control its behavior:
 | `-g` | `--gps` | None | (Future) Configures Meshtastic to use a GPS module. |
 | | `--noreboot` | None | (Future) Prevents the system from rebooting after script completion. |
 | `-r` | `--readonly` | None | (Future) Configures the root filesystem to be read-only if supported. |
-| `-v` | `--verbose` | None | (Future) Enables verbose output, providing more detailed information during execution. |
 | `-h` | `--help` | None | Displays a help message with usage instructions and exits. |
 
 # Acknowledgements
