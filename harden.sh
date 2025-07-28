@@ -94,7 +94,7 @@ while [[ "$#" -gt 0 ]]; do
             ;;
 
         -t|--toad)
-            TOAD=1
+            MESHTOAD=1
             shift # Remove param from processing
             echo "We will set mesh config to use a meshtoad"
             ;;
@@ -349,10 +349,6 @@ if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
         echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
         exit 1
     fi
-    if [[ "SANEMESH" ]]; then
-        echo "Setting radio to sane US settings"
-        bash utils/sane_radio_US.sh
-    fi
     MD_DIR="/etc/meshtasticd/"
     if [[ "$MESHTOAD" ]]; then
         echo "Setting Radio to Meshtoad"
@@ -373,6 +369,10 @@ if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
         rm -f $MD_DIR/config.d/*
         cp $MD_DIR/available.d/NebraHat_2W.yaml $MD_DIR/config.d
         cfg_device="NebraHat_2W"
+    fi
+    if [[ "SANEMESH" ]]; then
+        echo "Setting radio to sane US settings"
+        bash utils/sane_radio_US.sh
     fi
 else
     echo "User declined: Skipping Mesh install."
