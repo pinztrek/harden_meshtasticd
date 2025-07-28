@@ -39,6 +39,11 @@ There are several amateur related pi based systems which are hardened to improve
 > wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
 > sudo bash ./harden.sh
 
+* To install meshtasticd and set the radio to reasonable US defaults:
+> wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
+> sudo bash ./harden.sh -m -s
+
+
 # Command-Line Options
 
 This script supports the following command-line options to control its behavior:

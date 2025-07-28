@@ -13,6 +13,7 @@
 REBOOT=1 # Default to true (will reboot)
 RESTART=0
 MESH="N"
+SANEMESH=0
 RO_ROOT=0 # Default to false (read-write initially)
 
 # Function to display usage information
@@ -24,7 +25,8 @@ usage() {
     echo "  -r | --readonly    : Mount root filesystem as read-only."
     echo "  -s | --sanemesh    : Set sane mesh defaults for the US region."
     echo "  -t | --toad        : Set mesh config to use a meshtoad."
-    echo "       --nebramesh   : Set mesh config to use a NebraMesh HAT."
+    echo "       --nebrahat   : Set mesh config to use a NebraMesh HAT."
+    echo "       --nebrahat_2W   : Set mesh config to use a NebraMesh 2W HAT."
     echo "  -g | --gps         : Set mesh config to use a GPS."
     echo "  -h | --help        : Display this help message."
     exit 2
@@ -88,7 +90,7 @@ while [[ "$#" -gt 0 ]]; do
         -n|--nebra)
             NEBRA=1
             shift # Remove param from processing
-            echo "We will set sane mesh defaults for the US" # This echo message seems to be a copy-paste error from --sanemesh
+            echo "We will set sane mesh defaults for the US" 
             ;;
 
         -t|--toad)
@@ -97,10 +99,16 @@ while [[ "$#" -gt 0 ]]; do
             echo "We will set mesh config to use a meshtoad"
             ;;
 
-        --nebramesh)
-            NEBRAMESH=1
+        --nebrahat)
+            NEBRAHAT_1W=1
             shift # Remove param from processing
-            echo "We will set mesh config to use a NebraMesh hat" # This echo message seems to be a copy-paste error from --nebra
+            echo "We will set mesh config to use a NebraMesh hat" 
+            ;;
+
+        --nebrahat_1W)
+            NEBRAHAT_2W=1
+            shift # Remove param from processing
+            echo "We will set mesh config to use a NebraMesh 2W hat"
             ;;
 
         -g|--gps)
@@ -344,6 +352,27 @@ if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
     if [[ "SANEMESH" ]]; then
         echo "Setting radio to sane US settings"
         bash utils/sane_radio_US.sh
+    fi
+    MD_DIR="/etc/meshtasticd/"
+    if [[ "$MESHTOAD" ]]; then
+        echo "Setting Radio to Meshtoad"
+        rm -f config.d/*
+        cp $MD_DIR/available.d/lora-usb-meshtoad-e22.yaml $MD_DIR/config.d
+        cfg_device="meshtoad"
+    fi
+
+    if [[ "$NEBRAHAT_1W" ]]; then
+        echo "Setting Radio to NebraHat_1W"
+        rm -f $MD_DIR/config.d/*
+        cp $MD_DIR/available.d/NebraHat_1W.yaml $MD_DIR/config.d
+        cfg_device="NebraHat_1W"
+    fi
+
+    if [[ "$NEBRAHAT_2W" ]]; then
+        echo "Setting Radio to NebraHat_2W"
+        rm -f $MD_DIR/config.d/*
+        cp $MD_DIR/available.d/NebraHat_2W.yaml $MD_DIR/config.d
+        cfg_device="NebraHat_2W"
     fi
 else
     echo "User declined: Skipping Mesh install."
