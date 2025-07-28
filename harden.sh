@@ -18,20 +18,60 @@ RWROOT=false
 usage() {
     echo "Usage: $0 [OPTIONS]"
     echo "Options:"
-    echo "  --reboot    : Perform a reboot after script execution."
-    echo "  --restart   : Restart a service after script execution."
-    echo "  --nomesh    : Disable mesh networking."
-    echo "  --rwroot    : Mount root filesystem as read-write."
-    echo "  --help      : Display this help message."
+    echo "  -m | --mesh    : Install mesh networking."
+    echo "  -n | --noreboot    : Do not perform a reboot after script execution."
+    #echo "  -r | --roroot    : Mount root filesystem as read-only."
+    echo "  -h | --help      : Display this help message."
     exit 1
+}
+
+# --- Function to Query User for Yes/No Input ---
+# Usage: ask_yes_no "Your prompt message?" "default_answer (y/n)"
+# Returns: 0 (true) if 'y' or 'yes', 1 (false) otherwise.
+ask_yes_no() {
+    local prompt_message="$1"
+    local default_answer="$2" # Expected to be 'y' or 'n' (case-insensitive)
+    local user_input
+
+    # Normalize default answer for display
+    local display_default="[Y/n]"
+    if [[ "$default_answer" =~ ^[Nn]$ ]]; then
+        display_default="[y/N]"
+    fi
+
+    # Loop until valid input is received
+    while true; do
+        read -p "$prompt_message $display_default: " user_input
+        # Apply default if user input is empty
+        user_input=${user_input:-$default_answer}
+        # Convert input to lowercase for robust comparison
+        user_input_lower=$(echo "$user_input" | tr '[:upper:]' '[:lower:]')
+
+        case "$user_input_lower" in
+            y|yes)
+                return 0 # True
+                ;;
+            n|no)
+                return 1 # False
+                ;;
+            *)
+                echo "Invalid input. Please enter 'y' (yes) or 'n' (no)." >&2
+                ;;
+        esac
+    done
 }
 
 # Process command-line arguments
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
         # Short options
+        -r|--readonly)
+            RO_ROOT=Y
+            shift # Remove param from processing
+            echo "We will make the root FS read only if possible"
+            ;;
         -m|--mesh)
-            MESH=1
+            MESH=Y
             shift # Remove param from processing
             echo "We will install meshtasticd"
             ;;
@@ -63,6 +103,11 @@ while [[ "$#" -gt 0 ]]; do
             shift # Remove param from processing
             echo "We will set mesh config to use a GPS"
             ;;
+        -n|--noreboot)
+            REBOOT=0
+            shift # Remove param from processing
+            echo "We will not reboot when complete"
+            ;;
 
         #-i|--input)
             # Check if value is provided
@@ -91,7 +136,34 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Example actions based on options
-if $REBOOT; then
+if $REBOOT; thenecho "--- User Confirmation ---"
+
+# Ask with default 'yes'
+if ask_yes_no "Do you want to proceed with the main operation" "y"; then
+    echo "User confirmed: Proceeding with main operation."
+    PROCESS_CONFIRMATION=1
+else
+    echo "User declined: Main operation cancelled."
+    PROCESS_CONFIRMATION=0
+fi
+
+echo ""
+
+# Ask with default 'no'
+if ask_yes_no "Do you want to enable extra features" "n"; then
+    echo "User confirmed: Extra features enabled."
+else
+    echo "User declined: Extra features NOT enabled."
+fi
+
+# You can use the PROCESS_CONFIRMATION variable later in your script
+if (( PROCESS_CONFIRMATION )); then
+    echo "Based on earlier confirmation, the script can continue its main task."
+    # ... main script logic ...
+else
+    echo "Script will not perform its main task due to user's earlier decline."
+fi
+
     echo "Performing reboot action..."
     # sudo reboot
 fi
@@ -288,6 +360,32 @@ systemctl disable systemd-rfkill.service
 
 # get the rest of the files for future usage
 git clone https://github.com/pinztrek/harden_meshtasticd
+
+echo "--- User Confirmation ---"
+
+# Ask with default 'yes'
+if [[ ! "$MESH" ]]; then
+    $MESH="N"
+if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
+    echo "User confirmed: Proceeding with meshtasticd install."
+    PROCESS_CONFIRMATION=1
+    pwd
+    . mesh.sh
+else
+    echo "User declined: Skipping Mesh install."
+    PROCESS_CONFIRMATION=0
+fi
+
+echo ""
+
+# You can use the PROCESS_CONFIRMATION variable later in your script
+if (( PROCESS_CONFIRMATION )); then
+    echo "Based on earlier confirmation, the script can continue its main task."
+    # ... main script logic ...
+else
+    echo "Script will not perform its main task due to user's earlier decline."
+fi
+
 
 
 exit  #-------------------------------------------------------------------

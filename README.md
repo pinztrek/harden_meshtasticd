@@ -39,5 +39,22 @@ There are several amateur related pi based systems which are hardened to improve
 > wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
 > sudo bash ./harden.sh
 
+# Command-Line Options
+
+This script supports the following command-line options to control its behavior:
+
+| **Short Form** | **Long Form** | **Argument** | **Description** |
+| :--------- | :---------- | :------- | :----------------------------------------------------------------------- |
+| `-m` | `--mesh` | None | Installs the Meshtastic daemon (`meshtasticd`). |
+| `-s` | `--sanemesh` | None | Applies sane default Meshtastic settings for the US region. |
+| `-n` | `--nebra` | None | (Future) Configures Meshtastic for a Nebra device with sane default settings for the US region. |
+| `-t` | `--toad` | None | (Future) Configures Meshtastic to use a Meshtoad device. |
+| | `--nebramesh` | None | (Future) Configures Meshtastic to use a NebraMesh HAT. |
+| `-g` | `--gps` | None | (Future) Configures Meshtastic to use a GPS module. |
+| | `--noreboot` | None | (Future) Prevents the system from rebooting after script completion. |
+| `-r` | `--readonly` | None | (Future) Configures the root filesystem to be read-only if supported. |
+| `-v` | `--verbose` | None | (Future) Enables verbose output, providing more detailed information during execution. |
+| `-h` | `--help` | None | Displays a help message with usage instructions and exits. |
+
 # Acknowledgements
 Initial experience with pi-star on multiple DMR repeaters, and also AllstarLink 3 on repeaters led to understanding the approach they used. Both projects directly influenced this project's design, and some code fragments were utilzed from ASL3. 

@@ -9,7 +9,7 @@ curl -fsSL https://download.opensuse.org/repositories/network:Meshtastic:beta/De
 apt-get update
 
 # Get m*d and pip which we will need later for the CLI
-apt-get install meshtasticd pip
+apt-get install -y meshtasticd pip
 
 # Get nebramesh hat config files
 wget -O /etc/meshtasticd/available.d/NebraHat_1W.yaml https://github.com/wehooper4/Meshtastic-Hardware/raw/refs/heads/main/NebraHat/NebraHat_1W.yaml
@@ -23,5 +23,3 @@ pip install --break-system-packages meshtastic
 cp utils/* /usr/local/bin
 
 echo "Copy the appropriate config file from /etc/meshtasticd/available.d to the config.d file"
-echo "Then start meshtasticd with:"
-echo "systemctl start meshtasticd
