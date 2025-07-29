@@ -73,40 +73,45 @@ while [[ "$#" -gt 0 ]]; do
     case "$1" in
         # Short options
         -r|--readonly)
-            RO_ROOT=Y # This variable is used later, make sure it's consistent
+            RO_ROOT=Y 
             shift # Remove param from processing
             echo "We will make the root FS read only if possible"
             ;;
         -m|--mesh)
-            MESH=Y # Use a distinct variable name to avoid confusion with the ask_yes_no default
+            MESH=Y 
             shift # Remove param from processing
             echo "We will install meshtasticd"
             ;;
         -s|--sanemesh)
             SANEMESH=1
+            MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set sane mesh defaults for the US"
             ;;
         -n|--nebra)
             NEBRA=1
+            MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set sane mesh defaults for the US" 
             ;;
 
         -t|--toad)
             MESHTOAD=1
+            MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set mesh config to use a meshtoad"
             ;;
 
         --nebrahat)
             NEBRAHAT_1W=1
+            MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set mesh config to use a NebraMesh hat" 
             ;;
 
-        --nebrahat_1W)
+        --nebrahat_2W)
             NEBRAHAT_2W=1
+            MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set mesh config to use a NebraMesh 2W hat"
             ;;
@@ -373,6 +378,8 @@ if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
     if [[ "SANEMESH" ]]; then
         echo "Setting radio to sane US settings"
         bash utils/sane_radio_US.sh
+        sleep 5
+        bash meshtastic --set-owner "`cat /etc/hostname`"
     fi
 else
     echo "User declined: Skipping Mesh install."
