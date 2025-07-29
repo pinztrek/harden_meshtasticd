@@ -60,5 +60,13 @@ This script supports the following command-line options to control its behavior:
 | `-r` | `--readonly` | None | (Future) Configures the root filesystem to be read-only if supported. |
 | `-h` | `--help` | None | Displays a help message with usage instructions and exits. |
 
+# Notes and caveats
+* --sanemesh and similar will not work if no radio is installed
+* The script is intended to be run just once. I've attempted to skip any sections damaged by a 2nd run, but 
+it has not been extensively tested
+* While the majority of streaming disk activity for subsystems like meshtasticd have been moved to ram and zram, some 
+disk writes do still occur on the root FS. This is OK for EEMC based systems, but microSD will still have a finite life 
+if run 7x24 for years. The longterm answer is having a read only root FS, which is in progress but not released yet. 
+
 # Acknowledgements
 Initial experience with pi-star on multiple DMR repeaters, and also AllstarLink 3 on repeaters led to understanding the approach they used. Both projects directly influenced this project's design, and some code fragments were utilzed from ASL3. 

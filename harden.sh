@@ -10,21 +10,18 @@
 # Save params
 # Default values for options
 # Use 0 for false, 1 for true for easier arithmetic checks
-REBOOT=1 # Default to true (will reboot)
-RESTART=0
 MESH="N"
-SANEMESH=0
-RO_ROOT=0 # Default to false (read-write initially)
 
 # Function to display usage information
 usage() {
     echo "Usage: $0 [OPTIONS]"
     echo "Options:"
     echo "  -m | --mesh        : Install mesh networking."
-    echo "  -n | --noreboot    : Do not perform a reboot after script execution."
+    echo "  	 --noreboot    : Do not perform a reboot after script execution."
     echo "  -r | --readonly    : Mount root filesystem as read-only."
     echo "  -s | --sanemesh    : Set sane mesh defaults for the US region."
     echo "  -t | --toad        : Set mesh config to use a meshtoad."
+    echo "       --nebra       : Install mesh, do nebra setup and set to sane US defaults"
     echo "       --nebrahat   : Set mesh config to use a NebraMesh HAT."
     echo "       --nebrahat_2W   : Set mesh config to use a NebraMesh 2W HAT."
     echo "  -g | --gps         : Set mesh config to use a GPS."
@@ -73,7 +70,7 @@ while [[ "$#" -gt 0 ]]; do
     case "$1" in
         # Short options
         -r|--readonly)
-            RO_ROOT=Y 
+            RO_ROOT=true 
             shift # Remove param from processing
             echo "We will make the root FS read only if possible"
             ;;
@@ -83,47 +80,47 @@ while [[ "$#" -gt 0 ]]; do
             echo "We will install meshtasticd"
             ;;
         -s|--sanemesh)
-            SANEMESH=1
+            SANEMESH=true
             MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set sane mesh defaults for the US"
             ;;
         -n|--nebra)
-            NEBRA=1
+            NEBRA=true
             MESH=Y # Implied by selection of this option
-            SANEMESH=1 # Implied US usage
+            SANEMESH=true # Implied US usage
             shift # Remove param from processing
             echo "We will set sane mesh defaults for the US" 
             ;;
 
         -t|--toad)
-            MESHTOAD=1
+            MESHTOAD=true
             MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set mesh config to use a meshtoad"
             ;;
 
         --nebrahat)
-            NEBRAHAT_1W=1
+            NEBRAHAT_1W=true
             MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set mesh config to use a NebraMesh hat" 
             ;;
 
         --nebrahat_2W)
-            NEBRAHAT_2W=1
+            NEBRAHAT_2W=true
             MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set mesh config to use a NebraMesh 2W hat"
             ;;
 
         -g|--gps)
-            GPS=1
+            GPS=true
             shift # Remove param from processing
             echo "We will set mesh config to use a GPS"
             ;;
-        -n|--noreboot)
-            REBOOT=0 # Set the flag to 0 (false)
+        --noreboot)
+            NOREBOOT=true # Set the flag to 0 (false)
             shift # Remove param from processing
             echo "We will not reboot when complete"
             ;;
@@ -370,27 +367,28 @@ if [[ ! "`which meshtastic`" && "$MESH" ]]; then
 fi # End of mesh install, now check for mesh option if mesh is installed
 if [[ "`which meshtastic`" ]]; then
     MD_DIR="/etc/meshtasticd/"
-    if [[ "$MESHTOAD" ]]; then
+    # note these are checking for true/false, thus the single [
+    if [ "$MESHTOAD" ]; then
         echo "Setting Radio to Meshtoad"
         rm -f config.d/*
         cp $MD_DIR/available.d/lora-usb-meshtoad-e22.yaml $MD_DIR/config.d
         cfg_device="meshtoad"
     fi
 
-    if [[ "$NEBRAHAT_1W" ]]; then
+    if [ "$NEBRAHAT_1W" ]; then
         echo "Setting Radio to NebraHat_1W"
         rm -f $MD_DIR/config.d/*
         cp $MD_DIR/available.d/NebraHat_1W.yaml $MD_DIR/config.d
         cfg_device="NebraHat_1W"
     fi
 
-    if [[ "$NEBRAHAT_2W" ]]; then
+    if [ "$NEBRAHAT_2W" ]; then
         echo "Setting Radio to NebraHat_2W"
         rm -f $MD_DIR/config.d/*
         cp $MD_DIR/available.d/NebraHat_2W.yaml $MD_DIR/config.d
         cfg_device="NebraHat_2W"
     fi
-    if [[ "SANEMESH" ]]; then
+    if [ "$SANEMESH" ]; then
         echo "Setting radio to sane US settings"
         bash utils/sane_radio_US.sh
         sleep 5
@@ -402,19 +400,19 @@ fi # End of mesh options
 
 # If you intend RWROOT to be a boolean for read-write, initialize it as 0/1.
 # Based on the option parsing, RO_ROOT=Y is set for read-only.
-if [[ "$RO_ROOT" == "Y" ]]; then
+if [[ "$RO_ROOT" == "Y"  || $RO_ROOT == true ]]; then
     echo "Mounting root filesystem as read-only..."
     sudo mount -o remount,ro /
     sudo mount -o remount,ro /boot/firmware # Assuming /boot/firmware is your boot partition
 fi
 
 # Final reboot check based on REBOOT_FLAG
-if (( REBOOT )); then # REBOOT is 1 (true) by default, 0 (false) if --noreboot is passed
+if (( NOREBOOT )); then
+    echo "Reboot suppressed by --noreboot option."
+else
     echo "Rebooting in 5 seconds..."
     sleep 5
     #sudo reboot
-else
-    echo "Reboot suppressed by --noreboot option."
 fi
 
 echo "harden_meshtasticd finished."
