@@ -360,6 +360,7 @@ if [[ ! "`which meshtastic`" && "$MESH" ]]; then
     # For a hardening script, executing it as a sub-process might be safer.
     if [[ -f "./mesh.sh" ]]; then
         bash ./mesh.sh # Execute as a sub-process
+        bash meshtastic --set-owner "`cat /etc/hostname`"
     else
         echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
         exit 1
@@ -392,7 +393,6 @@ if [[ "`which meshtastic`" ]]; then
         echo "Setting radio to sane US settings"
         bash utils/sane_radio_US.sh
         sleep 5
-        bash meshtastic --set-owner "`cat /etc/hostname`"
     fi
 fi # End of mesh options
 
