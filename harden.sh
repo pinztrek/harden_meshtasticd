@@ -190,12 +190,14 @@ apt install -y lunzip jq wget git
 #apt install -y asl3 asl3-menu asl3-update-nodelist allmon3 asl3-pi-appliance \
 #             vim-nox
 
-# Setup active dirs which do not need persistance as tmpfs
-if [[ "`grep /etc/fstab zram`" ]]; then
-    echo "Script has already run, exiting"
-    exit
-fi
-cat - >> /etc/fstab <<EOF
+
+if [[ "`grep zram /etc/fstab`" ]]; then
+    echo "Script has already run, skip volume and zram setup"
+else
+	# Do main system setup
+
+	# Setup active dirs which do not need persistance as tmpfs
+	cat - >> /etc/fstab <<EOF
 
 tmpfs    /tmp            tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
 tmpfs    /var/tmp        tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777,size=128M 0 0
@@ -203,119 +205,119 @@ tmpfs    /var/tmp        tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777
 tmpfs    /opt/zram       tmpfs    defaults,noatime,nosuid,nodev,noexec,mode=1777,size=15M 0 0
 EOF
 
-# Now activate the new ram tmp dirs
-mv /tmp /tmp.old
-mkdir -m 1777 /tmp
-mount /tmp
-mv /var/tmp /var/tmp.old
-mkdir -m 1777 /var/tmp
-mount /var/tmp
-mkdir -p -m 1777 /opt/zram
-mount /opt/zram
+	# Now activate the new ram tmp dirs
+	mv /tmp /tmp.old
+	mkdir -m 1777 /tmp
+	mount /tmp
+	mv /var/tmp /var/tmp.old
+	mkdir -m 1777 /var/tmp
+	mount /var/tmp
+	mkdir -p -m 1777 /opt/zram
+	mount /opt/zram
 
-# Now we can get rid of the old tmp dirs
-rm -rf /tmp.old /var/tmp.old
+	# Now we can get rid of the old tmp dirs
+	rm -rf /tmp.old /var/tmp.old
 
-# move key files/dirs to tmp to allow RO /
-# JAB this needs more work, edit cfg file
-rm -rf /var/spool #/etc/resolv.conf
+	# move key files/dirs to tmp to allow RO /
+	# JAB this needs more work, edit cfg file
+	rm -rf /var/spool #/etc/resolv.conf
 
-rm -rf /var/lib/dhcp && ln -s /var/run /var/lib/dhcp
-rm -rf /var/lib/dhcp5 && ln -s /var/run /var/lib/dhcp5
-rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
-# Comment this out if not using logrotate
-#rm -rf /var/lib/logrotate && ln -s /var/run /var/lib/logrotate
-rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
-rm -rf /var/spool && ln -s /tmp /var/spool
+	rm -rf /var/lib/dhcp && ln -s /var/run /var/lib/dhcp
+	rm -rf /var/lib/dhcp5 && ln -s /var/run /var/lib/dhcp5
+	rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
+	# Comment this out if not using logrotate
+	#rm -rf /var/lib/logrotate && ln -s /var/run /var/lib/logrotate
+	rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
+	rm -rf /var/spool && ln -s /tmp /var/spool
 
-# Deal with randomseed
-echo "Deal with randomseed"
+	# Deal with randomseed
+	echo "Deal with randomseed"
 
-mv /var/lib/systemd/random-seed /tmp/systemd-random-seed && ln -s /tmp/systemd-random-seed /var/lib/systemd/random-seed
-# create a copy of the service, this will override the default
-cp /usr/lib/systemd/system/systemd-random-seed.service /etc/systemd/system
-FILE="/etc/systemd/system/systemd-random-seed.service"
-TARGET_LINE='RemainAfterExit=yes'
-LINE_TO_ADD='ExecStartPre=/bin/echo "" >/tmp/systemd-random-seed'
-# now do the replacement
-sed -i "/$TARGET_LINE/a\\
-    $LINE_TO_ADD" "$FILE" # Quote $FILE for safety
+	mv /var/lib/systemd/random-seed /tmp/systemd-random-seed && ln -s /tmp/systemd-random-seed /var/lib/systemd/random-seed
+	# create a copy of the service, this will override the default
+	cp /usr/lib/systemd/system/systemd-random-seed.service /etc/systemd/system
+	FILE="/etc/systemd/system/systemd-random-seed.service"
+	TARGET_LINE='RemainAfterExit=yes'
+	LINE_TO_ADD='ExecStartPre=/bin/echo "" >/tmp/systemd-random-seed'
+	# now do the replacement
+	sed -i "/$TARGET_LINE/a\\
+	    $LINE_TO_ADD" "$FILE" # Quote $FILE for safety
 
-# Don't need these running
-for service in bluetooth ModemManager
-do
-    systemctl stop "$service" # Quote $service for safety
-    systemctl disable "$service" # Quote $service for safety
-done
+	# Don't need these running
+	for service in bluetooth ModemManager
+	do
+	    systemctl stop "$service" # Quote $service for safety
+	    systemctl disable "$service" # Quote $service for safety
+	done
 
-for service in systemd-logind systemd-timesyncd
-do
-    # restart them so they will use the new tmp
-    systemctl restart "$service" # Quote $service for safety
-done
+	for service in systemd-logind systemd-timesyncd
+	do
+	    # restart them so they will use the new tmp
+	    systemctl restart "$service" # Quote $service for safety
+	done
 
-# Disable the auto apt stuff
-systemctl mask man-db.timer
-systemctl mask apt-daily.timer
-systemctl mask apt-daily-upgrade.timer
+	# Disable the auto apt stuff
+	systemctl mask man-db.timer
+	systemctl mask apt-daily.timer
+	systemctl mask apt-daily-upgrade.timer
 
-echo "sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot/firmware" >> /etc/bash.bash_logout
+	echo "sudo mount -o remount,ro / ; sudo mount -o remount,ro /boot/firmware" >> /etc/bash.bash_logout
 
-# Deal with resolv.conf
-echo "Deal with resolv.conf"
-# Ensure the directory exists before copying
-mkdir -p /etc/NetworkManager/conf.d
-cp /etc/NetworkManager/NetworkManager.conf /etc/NetworkManager/conf.d/NetworkManager.conf # Ensure target filename is explicit
-FILE="/etc/NetworkManager/conf.d/NetworkManager.conf"
-LINE_TO_ADD="rc-manager=file"
-# now do the replacement
-sed -i '/\[main\]/a\\
-'"$LINE_TO_ADD" "$FILE" # Quote $FILE for safety
+	# Deal with resolv.conf
+	echo "Deal with resolv.conf"
+	# Ensure the directory exists before copying
+	mkdir -p /etc/NetworkManager/conf.d
+	cp /etc/NetworkManager/NetworkManager.conf /etc/NetworkManager/conf.d/NetworkManager.conf # Ensure target filename is explicit
+	FILE="/etc/NetworkManager/conf.d/NetworkManager.conf"
+	LINE_TO_ADD="rc-manager=file"
+	# now do the replacement
+	sed -i '/\[main\]/a\\
+	'"$LINE_TO_ADD" "$FILE" # Quote $FILE for safety
 
-sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
+	sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
 
 
-# Get and install zram-config
+	# Get and install zram-config
 
-REPO_OWNER="ecdye"
-REPO_NAME="zram-config"
+	REPO_OWNER="ecdye"
+	REPO_NAME="zram-config"
 
-echo "Downloading zram-config"
+	echo "Downloading zram-config"
 
-# use brute force to get zram for now - ensure it's downloaded to the temp dir
-wget -O "zram-config-v1.7.0.tar.lz" https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
+	# use brute force to get zram for now - ensure it's downloaded to the temp dir
+	wget -O "zram-config-v1.7.0.tar.lz" https://github.com/ecdye/zram-config/releases/download/v1.7.0/zram-config-v1.7.0.tar.lz
 
-# Fetch information for the latest release (original commented out block)
-# API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
-# DOWNLOAD_URL=$(curl -s "$API_URL" | \
-#                jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
-# echo "Fetching latest release information from: $DOWNLOAD_URL"
-# temporary disable till can sort
-# curl -s -O $DOWNLOAD_URL # This would download to current dir, not temp_zram_dir
+	# Fetch information for the latest release (original commented out block)
+	# API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
+	# DOWNLOAD_URL=$(curl -s "$API_URL" | \
+	#                jq -r '.assets[] | select(.name | startswith("zram-config-") and endswith(".tar.lz")) | .browser_download_url' | head -n 1) # Added head -n 1 in case multiple match
+	# echo "Fetching latest release information from: $DOWNLOAD_URL"
+	# temporary disable till can sort
+	# curl -s -O $DOWNLOAD_URL # This would download to current dir, not temp_zram_dir
 
-# Now install the package
-tar -xf zram-config-v1.7.0.tar.lz --strip-components=1 
+	# Now install the package
+	tar -xf zram-config-v1.7.0.tar.lz --strip-components=1 
 
-# relocate the zram log to allow ro filesystem (can't be in zram itself)
-# Use a temporary file for sed output and then move it
-sed -i "s_/usr/local/share/zram-config/log_/run_" "zram-config"  
+	# relocate the zram log to allow ro filesystem (can't be in zram itself)
+	# Use a temporary file for sed output and then move it
+	sed -i "s_/usr/local/share/zram-config/log_/run_" "zram-config"  
 
-# JAB remove this once m*d installed
-mkdir -p /var/lib/meshtasticd
-# add dirs to ztab
-cat - >> ztab <<EOF
+	# JAB remove this once m*d installed
+	mkdir -p /var/lib/meshtasticd
+	# add dirs to ztab
+	cat - >> ztab <<EOF
 
 # dir    alg          mem_limit         disk_size         target_dir        bind_dir
 dir    lzo-rle      50M               150M              /var/lib/meshtasticd      /mesh.bind
 EOF
 
-# Run install from the extracted directory
-bash ./install.bash
-bash ./install.bash sync
+	# Run install from the extracted directory
+	bash ./install.bash
+	bash ./install.bash sync
 
 
 
-cat - >> /etc/bash.bashrc <<EOF
+	cat - >> /etc/bash.bashrc <<EOF
 #alias dir='dir --color=auto'
 #alias egrep='egrep --color=auto'
 #alias fgrep='fgrep --color=auto'
@@ -328,22 +330,32 @@ alias rpi-rw='sudo mount -o remount,rw / ; sudo mount -o remount,rw /boot'
 #alias vdir='vdir --color=auto'
 EOF
 
-# disable rfkill now
-echo "disable rfkill now"
-systemctl mask systemd-rfkill.socket
-systemctl disable systemd-rfkill.service
+	# disable rfkill now
+	echo "disable rfkill now"
+	systemctl mask systemd-rfkill.socket
+	systemctl disable systemd-rfkill.service
+fi # End of main system setup
 
+if [[ -e harden_meshtasticd && -d harden_meshtasticd ]]; then
+	rm -rf harden_meshtasticd.last
+	mv harden_meshtasticd harden_meshtasticd.last
+fi
 # get the rest of the files for future usage
 git clone https://github.com/pinztrek/harden_meshtasticd # Consider cloning to a specific path
+
 # Rest of script is run from the cloned git dir structure
 cd harden_meshtasticd
 
 
 # Ask about meshtasticd installation
 
-if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
-    echo "User confirmed: Proceeding with meshtasticd install."
-    PROCESS_CONFIRMATION=1 # This variable's purpose is a bit ambiguous, consider if needed
+if [[ ! "$MESH" ]]; then
+	if  ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
+	    MESH=Y
+	fi
+fi
+if [[ ! "`which meshtastic`" && "$MESH" ]]; then
+    echo "Proceeding with meshtasticd install."
     pwd
     # Ensure mesh.sh exists and is executable, and handle its execution carefully
     # If mesh.sh is meant to be sourced, use '.'
@@ -355,6 +367,8 @@ if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
         echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
         exit 1
     fi
+fi # End of mesh install, now check for mesh option if mesh is installed
+if [[ "`which meshtastic`" ]]; then
     MD_DIR="/etc/meshtasticd/"
     if [[ "$MESHTOAD" ]]; then
         echo "Setting Radio to Meshtoad"
@@ -382,10 +396,9 @@ if ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
         sleep 5
         bash meshtastic --set-owner "`cat /etc/hostname`"
     fi
-else
-    echo "User declined: Skipping Mesh install."
-    PROCESS_CONFIRMATION=0
-fi
+fi # End of mesh options
+
+# Now check for non mesh stuff
 
 # If you intend RWROOT to be a boolean for read-write, initialize it as 0/1.
 # Based on the option parsing, RO_ROOT=Y is set for read-only.
@@ -404,5 +417,5 @@ else
     echo "Reboot suppressed by --noreboot option."
 fi
 
-echo "Script finished."
+echo "harden_meshtasticd finished."
 
