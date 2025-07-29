@@ -51,14 +51,10 @@ This script supports the following command-line options to control its behavior:
 | **Short Form** | **Long Form** | **Argument** | **Description** |
 | :--------- | :---------- | :------- | :----------------------------------------------------------------------- |
 | `-m` | `--mesh` | None | Installs the Meshtastic daemon (`meshtasticd`). |
-| `-s` | `--sanemesh` | None | Applies sane default Meshtastic settings for the US region. |
-||||Triggers --mesh|
-| `-n` | `--nebra` | None | (Future) Configures Meshtastic for a Nebra device with sane default settings for the US region. |
-||||Triggers --mesh|
-| `-t` | `--toad` | None | (Future) Configures Meshtastic to use a Meshtoad device. |
-||||Triggers --mesh|
-| | `--nebramesh` | None | (Future) Configures Meshtastic to use a NebraMesh HAT. |
-||||Triggers --mesh|
+| `-s` | `--sanemesh` | None | Applies sane default Meshtastic settings for the US region. <br>Triggers --mesh|
+| `-n` | `--nebra` | None | (Future) Configures Meshtastic for a Nebra device with sane default settings for the US region. <br>Triggers --sanemesh as US usage is assumed|
+| `-t` | `--toad` | None | (Future) Configures Meshtastic to use a Meshtoad device. <br>Triggers --mesh|
+| | `--nebramesh` | None | (Future) Configures Meshtastic to use a NebraMesh HAT. <br>Triggers --mesh|
 | `-g` | `--gps` | None | (Future) Configures Meshtastic to use a GPS module. |
 | | `--noreboot` | None | (Future) Prevents the system from rebooting after script completion. |
 | `-r` | `--readonly` | None | (Future) Configures the root filesystem to be read-only if supported. |

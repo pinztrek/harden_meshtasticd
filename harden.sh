@@ -91,6 +91,7 @@ while [[ "$#" -gt 0 ]]; do
         -n|--nebra)
             NEBRA=1
             MESH=Y # Implied by selection of this option
+            SANEMESH=1 # Implied US usage
             shift # Remove param from processing
             echo "We will set sane mesh defaults for the US" 
             ;;
