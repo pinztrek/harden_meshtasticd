@@ -61,7 +61,8 @@ This script supports the following command-line options to control its behavior:
 | `-h` | `--help` | None | Displays a help message with usage instructions and exits. |
 
 # Notes and caveats
-* --sanemesh and similar will not work if no radio is installed
+* The hostname is used as the default nodename. This can be changed via meshtastic CLI or set the hostname to be your desired nodename. 
+* --sanemesh and similar may not work if no radio is installed (many CLI commands can cause a reboot of meshtasticd)
 * The script is intended to be run just once. I've attempted to skip any sections damaged by a 2nd run, but 
 it has not been extensively tested
 * While the majority of streaming disk activity for subsystems like meshtasticd have been moved to ram and zram, some 

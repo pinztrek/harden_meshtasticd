@@ -360,7 +360,9 @@ if [[ ! "`which meshtastic`" && "$MESH" ]]; then
     # For a hardening script, executing it as a sub-process might be safer.
     if [[ -f "./mesh.sh" ]]; then
         bash ./mesh.sh # Execute as a sub-process
-        bash meshtastic --set-owner "`cat /etc/hostname`"
+        if [[ -x /usr/local/bin/meshtastic ]]; then
+            meshtastic --set-owner "`cat /etc/hostname`"
+        fi
     else
         echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
         exit 1
