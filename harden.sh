@@ -369,7 +369,8 @@ git clone https://github.com/pinztrek/harden_meshtasticd # Consider cloning to a
 # Rest of script is run from the cloned git dir structure
 cd harden_meshtasticd
 
-
+echo "hardened setup complete"
+echo "----------------------------------------------------------------------------"
 # Ask about meshtasticd installation
 
 if [[ ! "$MESH" ]]; then
@@ -401,6 +402,8 @@ if [[ ! "`which meshtastic`" && "$MESH" ]]; then
         exit 1
     fi
 fi # End of mesh install, now check for mesh option if mesh is installed
+echo "Meshtasticd Installed"
+echo "----------------------------------------------------------------------------"
 if [[ "`which meshtastic`" ]]; then
     MD_DIR="/etc/meshtasticd/"
     # note these are checking for true/false, thus the single [
@@ -435,6 +438,8 @@ if [[ "`which meshtastic`" ]]; then
 fi # End of mesh options
 
 # Now check for non mesh stuff
+echo "----------------------------------------------------------------------------"
+echo "Wrap up remaining items"
 
 # If you intend RWROOT to be a boolean for read-write, initialize it as 0/1.
 # Based on the option parsing, RO_ROOT=Y is set for read-only.
@@ -445,6 +450,7 @@ if [[ "$RO_ROOT" == "Y"  || $RO_ROOT == true ]]; then
 fi
 
 # Sync any files in zram before reboot/exit
+echo "sync zram to disk"
 zram-config sync
 
 # Final reboot check based on REBOOT_FLAG
