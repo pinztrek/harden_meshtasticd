@@ -37,14 +37,14 @@ config:
     #waitBluetoothSecs: 1
   #security:
     #adminKey:
-    #- base64:2XT8sPkBBF5j+BOdrgqVgfn8lAP+meyrNlX0TVSNgHU=
-    #privateKey: base64:oENdywecnY6iyuh0pBA2JSYIHxW4QZjqDtvOVMF8LmY=
-    #publicKey: base64:5PY+yOtvi0P3oZdA/D7JoITUdEvzgSN0lCw0H0+hYEM=
+    #- base64:replace_with_your_key
+    #privateKey: base64:replace_with_your_key_if_needed
+    #publicKey: base64:replace_with_your_key_if_needed
     #serialEnabled: true
 #location:
   #alt: 300
-  #lat: 33.909044
-  #lon: -84.656852
+  #lat: 33.0
+  #lon: -84.0
 #module_config:
   #ambientLighting:
     #blue: 73
