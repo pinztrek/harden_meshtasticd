@@ -60,6 +60,6 @@ config:
     #password: large4cats
     #root: msh/US
     #username: meshdev
-#owner_short: 0D78
-owner: mynebra
+#owner_short: 1234
+owner: mymesh
 

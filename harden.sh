@@ -379,13 +379,14 @@ if [[ ! "`which meshtastic`" && "$MESH" ]]; then
     if [[ -f "./mesh.sh" ]]; then
         bash ./mesh.sh # Execute as a sub-process
         if [[ -x /usr/local/bin/meshtastic ]]; then
-            if [[ $OWNER_NAME ]]; then
-                # set the nodename
-                meshtastic --set-owner "$OWNER_NAME"
-            else
-                # Otherwise use hostname
-                meshtastic --set-owner "`cat /etc/hostname`"
+            if [[ ! $OWNER_NAME ]]; then
+                #  use hostname if not specified
+                $OWNER_NAME="`cat /etc/hostname`"
             fi
+            # set the nodename
+            meshtastic --set-owner "$OWNER_NAME"
+            # and set the sane defaults
+            sed -i "s/mymesh/$OWNER_NAME/" /etc/meshtasticd/sane.yaml
         fi
     else
         echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
