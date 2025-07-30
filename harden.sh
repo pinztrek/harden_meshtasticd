@@ -11,13 +11,6 @@
 # Default values for options
 # Use 0 for false, 1 for true for easier arithmetic checks
 MESH="N"
-SANEMESH=false
-NEBRA=false
-MESHTOAD=false
-NEBRAHAT_1W=false
-NEBRAHAT_2W=false
-GPS=false
-NOREBOOT=false
 OWNER_NAME="" 
 POSITIONAL_ARGS=()
 
