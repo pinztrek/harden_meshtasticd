@@ -438,7 +438,7 @@ if [[ "$RO_ROOT" == "Y"  || $RO_ROOT == true ]]; then
 fi
 
 # Final reboot check based on REBOOT_FLAG
-if (( NOREBOOT )); then
+if (( $NOREBOOT )); then
     echo "Reboot suppressed by --noreboot option."
 else
     echo "Rebooting in 5 seconds..."
