@@ -22,7 +22,12 @@ wget -O /etc/meshtasticd/available.d/NebraHat_2W.yaml https://github.com/wehoope
 # Note we are not using virtual env, use a different approach if this is important to you
 pip install --break-system-packages meshtastic
 
-# copy util shims
-cp utils/* /usr/local/bin
+# copy util shims and sane.yaml
+# utils into /usr/local/bin
+# default yaml into /etc/meshtasticd
+cp -r utils/* /
+chmod a+x /usr/local/bin/m_* /usr/local/bin/sane_radio_US.sh
+NODENAME="`/usr/bin/hostname`"
+sed -i "s/mynebra/$NODENAME" /etc/meshtasticd/sane.yaml
 
 echo "Copy the appropriate config file from /etc/meshtasticd/available.d to the config.d file"

@@ -11,12 +11,22 @@
 # Default values for options
 # Use 0 for false, 1 for true for easier arithmetic checks
 MESH="N"
+SANEMESH=false
+NEBRA=false
+MESHTOAD=false
+NEBRAHAT_1W=false
+NEBRAHAT_2W=false
+GPS=false
+NOREBOOT=false
+OWNER_NAME="" 
+POSITIONAL_ARGS=()
 
 # Function to display usage information
 usage() {
     echo "Usage: $0 [OPTIONS]"
     echo "Options:"
     echo "  -m | --mesh        : Install mesh networking."
+    echo "  -o | --owner        : Send the nodename (owner)
     echo "  	 --noreboot    : Do not perform a reboot after script execution."
     echo "  -r | --readonly    : Mount root filesystem as read-only."
     echo "  -s | --sanemesh    : Set sane mesh defaults for the US region."
@@ -123,6 +133,16 @@ while [[ "$#" -gt 0 ]]; do
             NOREBOOT=true # Set the flag to 0 (false)
             shift # Remove param from processing
             echo "We will not reboot when complete"
+            ;;
+        -o|--owner) # nodename owner option
+            if [[ -n "$2" && "$2" != -* ]]; then # Check if the next argument exists and is not another option
+                OWNER_NAME="$2"
+                shift 2 # Shift twice: once for the option, once for its argument
+                echo "Owner name set to: $OWNER_NAME"
+            else
+                echo "Error: Option '$1' requires an argument." >&2
+                usage # Display usage and exit
+            fi
             ;;
 
         # Help option
@@ -361,7 +381,13 @@ if [[ ! "`which meshtastic`" && "$MESH" ]]; then
     if [[ -f "./mesh.sh" ]]; then
         bash ./mesh.sh # Execute as a sub-process
         if [[ -x /usr/local/bin/meshtastic ]]; then
-            meshtastic --set-owner "`cat /etc/hostname`"
+            if [[ $OWNER_NAME ]]; then
+                # set the nodename
+                meshtastic --set-owner "$OWNER_NAME"
+            else
+                # Otherwise use hostname
+                meshtastic --set-owner "`cat /etc/hostname`"
+            fi
         fi
     else
         echo "Error: mesh.sh not found in the current directory.`pwd`" >&2
@@ -392,9 +418,12 @@ if [[ "`which meshtastic`" ]]; then
         cfg_device="NebraHat_2W"
     fi
     if [ "$SANEMESH" ]; then
-        echo "Setting radio to sane US settings"
-        bash utils/sane_radio_US.sh
-        sleep 5
+        if [[ -f /usr/local/bin/sane_radio_US.sh ]]; then
+            echo "Setting radio to sane US settings"
+            bash /usr/local/bin/sane_radio_US.sh
+        else
+            echo "Tried to set radio to sane, but failed"
+        fi
     fi
 fi # End of mesh options
 
