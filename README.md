@@ -39,9 +39,14 @@ There are several amateur related pi based systems which are hardened to improve
 > wget -O harden.sh https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
 > sudo bash ./harden.sh
 
-* To install meshtasticd and set the radio to reasonable US defaults:
+* To install meshtasticd and set to reasonable US defaults:
 > wget -O harden.sh https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
 > sudo bash ./harden.sh -m -s
+(Note: you would still need to configure a radio in config.d from available.d
+
+* To install meshtasticd on a nebra, set the radio to a meshtoad, reasonable US defaults, and set the nodename to "monster":
+> wget -O harden.sh https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
+> sudo bash ./harden.sh -n -t -o monster
 
 
 # Command-Line Options
