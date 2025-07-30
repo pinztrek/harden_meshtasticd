@@ -28,6 +28,6 @@ pip install --break-system-packages meshtastic
 cp -r utils/* /
 chmod a+x /usr/local/bin/m_* /usr/local/bin/sane_radio_US.sh
 NODENAME="`/usr/bin/hostname`"
-sed -i "s/mynebra/$NODENAME" /etc/meshtasticd/sane.yaml
+sed -i "s/mynebra/$NODENAME/" /etc/meshtasticd/sane.yaml
 
 echo "Copy the appropriate config file from /etc/meshtasticd/available.d to the config.d file"
