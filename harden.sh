@@ -264,8 +264,7 @@ EOF
 	TARGET_LINE='RemainAfterExit=yes'
 	LINE_TO_ADD='ExecStartPre=/bin/echo "" >/tmp/systemd-random-seed'
 	# now do the replacement
-	sed -i "/$TARGET_LINE/a\\
-	    $LINE_TO_ADD" "$FILE" # Quote $FILE for safety
+	sed -i '/$TARGET_LINE/a\\n'"$LINE_TO_ADD" "$FILE" # Quote $FILE for safety
 
 	# Don't need these running
 	for service in bluetooth ModemManager
@@ -295,8 +294,7 @@ EOF
 	FILE="/etc/NetworkManager/conf.d/NetworkManager.conf"
 	LINE_TO_ADD="rc-manager=file"
 	# now do the replacement
-	sed -i '/\[main\]/a\\
-	'"$LINE_TO_ADD" "$FILE" # Quote $FILE for safety
+	sed -i '/\[main\]/a\\n'"$LINE_TO_ADD" "$FILE" # Quote $FILE for safety
 
 	mv /etc/resolv.conf /var/run/resolv.conf && ln -s /var/run/resolv.conf /etc/resolv.conf
 
