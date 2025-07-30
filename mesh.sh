@@ -27,11 +27,9 @@ pip install --break-system-packages meshtastic
 # default yaml into /etc/meshtasticd
 cp -r utils/* /
 chmod a+x /usr/local/bin/m_* /usr/local/bin/sane_radio_US.sh
-if [[ ! $OWNER_NAME ]]; then 
-    NODENAME="`/usr/bin/hostname`"
-    sed -i "s/mymesh/$NODENAME/" /etc/meshtasticd/sane.yaml
-fi
+
 # set mac to the ether, normal default for meshtasticd
 sed -i 's/#  MACAddressSource/  MACAddressSource/' /etc/meshtasticd/config.yaml
 
 echo "Copy the appropriate config file from /etc/meshtasticd/available.d to the config.d file"
+echo "if you did not specify a radio from the command line!"

@@ -173,6 +173,14 @@ if [[ "$EUID" -ne 0 ]]; then
     exit 1
 fi
 
+if [[ -f "/var/lib/dpkg/lock" ]]; then
+    echo "There is a dpkg lock file which will cause this script to fail"
+    echo "Either an apt/dpkg process is running or the lockfile must be removed"
+    echo "if you confirm there is no update activity."
+    echo "sudo rm /var/lib/dpkg/lock"
+    exit 1
+fi
+
 
 # JAB install needed scripts, assume git clone and script started from that dir
 # usr/local

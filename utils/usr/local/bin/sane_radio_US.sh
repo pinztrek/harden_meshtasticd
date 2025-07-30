@@ -3,9 +3,6 @@ SANEYAML="/etc/meshtasticd/sane.yaml"
 
 if [[ -f $SANEYAML && -s $SANEYAML ]]; then
 	echo "Using $SANEYAML"
-    #if [[ "$OWNER_NAME" ]]; then
-        #sed -i s/mynebra
-    #fi
 	meshtastic --configure $SANEYAML
 else
 	# no dist sane.yaml, do it manually. 
