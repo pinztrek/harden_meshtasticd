@@ -239,12 +239,19 @@ EOF
 	# JAB this needs more work, edit cfg file
 	rm -rf /var/spool #/etc/resolv.conf
 
+    # mv dhcp status to /var/run
 	rm -rf /var/lib/dhcp && ln -s /var/run /var/lib/dhcp
 	rm -rf /var/lib/dhcp5 && ln -s /var/run /var/lib/dhcp5
 	rm -rf /var/lib/sudo && ln -s /var/run /var/lib/sudo
+
 	# Comment this out if not using logrotate
 	#rm -rf /var/lib/logrotate && ln -s /var/run /var/lib/logrotate
+
+    # mv NetworkManager status
 	rm -rf /var/lib/NetworkManager && ln -s /var/run /var/lib/NetworkManager
+	#mv /var/lib/NetworkManager /var/lib/NetworkManager.old && ln -s /var/run /var/lib/NetworkManager
+    #cp -r /var/lib/NetworkManager.old/* /var/lib/NetworkManager
+
 	rm -rf /var/spool && ln -s /tmp /var/spool
 
 	# Deal with randomseed
@@ -291,7 +298,7 @@ EOF
 	sed -i '/\[main\]/a\\
 	'"$LINE_TO_ADD" "$FILE" # Quote $FILE for safety
 
-	sudo mv /etc/resolv.conf /var/run/resolv.conf && sudo ln -s /var/run/resolv.conf /etc/resolv.conf
+	mv /etc/resolv.conf /var/run/resolv.conf && ln -s /var/run/resolv.conf /etc/resolv.conf
 
 
 	# Get and install zram-config
@@ -436,6 +443,9 @@ if [[ "$RO_ROOT" == "Y"  || $RO_ROOT == true ]]; then
     sudo mount -o remount,ro /
     sudo mount -o remount,ro /boot/firmware # Assuming /boot/firmware is your boot partition
 fi
+
+# Sync any files in zram before reboot/exit
+zram-config sync
 
 # Final reboot check based on REBOOT_FLAG
 if (( $NOREBOOT )); then
