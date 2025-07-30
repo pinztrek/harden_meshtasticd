@@ -55,7 +55,8 @@ This script supports the following command-line options to control its behavior:
 | `-s` | `--sanemesh` | None | Applies sane default Meshtastic settings for the US region. <br>Triggers --mesh|
 | `-n` | `--nebra` | None | (Future) Configures Meshtastic for a Nebra device with sane default settings for the US region. <br>Triggers --sanemesh as US usage is assumed|
 | `-t` | `--toad` | None | (Future) Configures Meshtastic to use a Meshtoad device. <br>Triggers --mesh|
-| | `--nebramesh` | None | (Future) Configures Meshtastic to use a NebraMesh HAT. <br>Triggers --mesh|
+| | `--nebrahat` | None | (Future) Configures Meshtastic to use a NebraMesh 2W HAT. <br>Triggers --mesh|
+| | `--nebrahat_1W` | None | (Future) Configures Meshtastic to use a NebraMesh 1W HAT. <br>Triggers --mesh|
 | `-g` | `--gps` | None | (Future) Configures Meshtastic to use a GPS module. |
 | | `--noreboot` | None | (Future) Prevents the system from rebooting after script completion. |
 | `-r` | `--readonly` | None | (Future) Configures the root filesystem to be read-only if supported. |

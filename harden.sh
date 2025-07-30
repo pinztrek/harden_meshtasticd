@@ -32,8 +32,8 @@ usage() {
     echo "  -s | --sanemesh    : Set sane mesh defaults for the US region."
     echo "  -t | --toad        : Set mesh config to use a meshtoad."
     echo "       --nebra       : Install mesh, do nebra setup and set to sane US defaults"
-    echo "       --nebrahat   : Set mesh config to use a NebraMesh HAT."
-    echo "       --nebrahat_2W   : Set mesh config to use a NebraMesh 2W HAT."
+    echo "       --nebrahat   : Set mesh config to use a NebraMesh 2W HAT."
+    echo "       --nebrahat_1W   : Set mesh config to use a NebraMesh 1W HAT."
     echo "  -g | --gps         : Set mesh config to use a GPS."
     echo "  -h | --help        : Display this help message."
     exit 2
@@ -110,14 +110,14 @@ while [[ "$#" -gt 0 ]]; do
             echo "We will set mesh config to use a meshtoad"
             ;;
 
-        --nebrahat)
+        --nebrahat_1W)
             NEBRAHAT_1W=true
             MESH=Y # Implied by selection of this option
             shift # Remove param from processing
             echo "We will set mesh config to use a NebraMesh hat" 
             ;;
 
-        --nebrahat_2W)
+        --nebrahat)
             NEBRAHAT_2W=true
             MESH=Y # Implied by selection of this option
             shift # Remove param from processing
