@@ -51,6 +51,7 @@ This script supports the following command-line options to control its behavior:
 | **Short Form** | **Long Form** | **Argument** | **Description** |
 | :--------- | :---------- | :------- | :----------------------------------------------------------------------- |
 | `-m` | `--mesh` | None | Installs the Meshtastic daemon (`meshtasticd`). |
+| `-o` | `--owner` | desired_name | sets the nodename |
 | `-s` | `--sanemesh` | None | Applies sane default Meshtastic settings for the US region. <br>Triggers --mesh|
 | `-n` | `--nebra` | None | (Future) Configures Meshtastic for a Nebra device with sane default settings for the US region. <br>Triggers --sanemesh as US usage is assumed|
 | `-t` | `--toad` | None | (Future) Configures Meshtastic to use a Meshtoad device. <br>Triggers --mesh|
