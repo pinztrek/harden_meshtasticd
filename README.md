@@ -36,11 +36,11 @@ There are several amateur related pi based systems which are hardened to improve
 * Use raspberry_pi_imager to download Raspberry Pi OS Lite 64bit image. Make sure and set your login and network if needed.
 * Boot the image, and log in
 * Get the harden script and execute as root:
-> wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
+> wget -O harden.sh https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
 > sudo bash ./harden.sh
 
 * To install meshtasticd and set the radio to reasonable US defaults:
-> wget https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
+> wget -O harden.sh https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
 > sudo bash ./harden.sh -m -s
 
 

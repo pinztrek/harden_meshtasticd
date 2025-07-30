@@ -26,7 +26,7 @@ usage() {
     echo "Usage: $0 [OPTIONS]"
     echo "Options:"
     echo "  -m | --mesh        : Install mesh networking."
-    echo "  -o | --owner        : Send the nodename (owner)
+    echo "  -o | --owner        : Send the nodename (owner)"
     echo "  	 --noreboot    : Do not perform a reboot after script execution."
     echo "  -r | --readonly    : Mount root filesystem as read-only."
     echo "  -s | --sanemesh    : Set sane mesh defaults for the US region."
