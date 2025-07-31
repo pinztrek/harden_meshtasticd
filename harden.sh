@@ -472,8 +472,10 @@ echo "sync zram to disk"
 zram-config sync
 
 # Final reboot check based on REBOOT_FLAG
-if (( $NOREBOOT )); then
-    echo "Reboot suppressed by --noreboot option."
+#if (( $NOREBOOT )); then
+if (( false )); then # ignore for now
+    #echo "Reboot suppressed by --noreboot option."
+    echo "Reboot not needed
 else
     echo "Rebooting in 5 seconds..."
     sleep 5
