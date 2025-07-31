@@ -174,17 +174,31 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 if [[ -f "/var/lib/dpkg/lock" ]]; then
-    echo "There is a dpkg lock file which will cause this script to fail"
-    echo "Either an apt/dpkg process is running or the lockfile must be removed"
-    echo "if you confirm there is no update activity."
-    echo "sudo rm /var/lib/dpkg/lock"
-    exit 1
+	if [[ "`ps aux | grep -E 'apt|dpkg' | grep -v 'grep'`" ]]; then
+	    echo "Either an apt/dpkg process is running or the lockfile must be removed"
+	    echo "if you confirm there is no update activity execute the following:"
+	    echo "sudo rm /var/lib/dpkg/lock"
+	    exit 1
+	else
+	    echo "There is a dpkg lock file which will cause this script to fail"
+	    echo "No apt/dpkg processes are running so removing /var/lib/dpkg/lock"
+	    rm /var/lib/dpkg/lock
+	fi
 fi
 
-
-# JAB install needed scripts, assume git clone and script started from that dir
-# usr/local
-#unpack filesystem/usr/local/sbin/ /usr/local/sbin/ root
+#if [[ -e harden_meshtasticd && -d harden_meshtasticd ]]; then
+	#rm -rf harden_meshtasticd.last
+	#mv harden_meshtasticd harden_meshtasticd.last
+#fi
+# if needed, get the rest of the files in the repo for future usage
+if [[ -f ./mesh.sh || -f ./harden_meshtasticd/mesh.sh ]]; then
+	echo "Repo already cloned"
+        echo "Running from `pwd`"
+	#ls -al
+else
+	echo "Getting the repo"
+	git clone https://github.com/pinztrek/harden_meshtasticd
+fi
 
 # JAB tune this later, requires use of ASL3 code
 ## Cleanup old kernels first, minimize size and number of DKMS builds needed
@@ -359,32 +373,36 @@ EOF
 	systemctl disable systemd-rfkill.service
 fi # End of main system setup
 
-if [[ -e harden_meshtasticd && -d harden_meshtasticd ]]; then
-	rm -rf harden_meshtasticd.last
-	mv harden_meshtasticd harden_meshtasticd.last
-fi
-# get the rest of the files for future usage
-git clone https://github.com/pinztrek/harden_meshtasticd # Consider cloning to a specific path
 
-# Rest of script is run from the cloned git dir structure
-cd harden_meshtasticd
 
 echo "hardened setup complete"
 echo "----------------------------------------------------------------------------"
 # Ask about meshtasticd installation
 
-if [[ ! "$MESH" ]]; then
+if [[  ! "`which meshtastic`" && ! "$MESH" = "Y" ]]; then
 	if  ask_yes_no "Do you want to install meshtasticd?" "$MESH"; then
 	    MESH=Y
 	fi
 fi
-if [[ ! "`which meshtastic`" && "$MESH" ]]; then
+
+# Run meshtastic install if it's not already installed and enabled
+if [[ ! "`which meshtastic`" && "$MESH" = "Y" ]]; then
     echo "Proceeding with meshtasticd install."
-    pwd
+    if [[ -f ./mesh.sh || -f harden_meshtasticd/mesh.sh ]]; then
+        # cd to the git dir if not already in it
+        if [[ ! -f ./mesh.sh || -f harden_meshtasticd/mesh.sh ]]; then
+            cd harden_meshtasticd
+        fi
+        # Rest of script is run from the cloned git dir structure
+    else
+        echo "Can't find the mesh.sh script!"
+        echo "Needs to be run from the directory you downloaded the script"
+        echo "or the cloned git directory"
+        exit 1
+    fi
+    echo "Running from `pwd`"
+
     # Ensure mesh.sh exists and is executable, and handle its execution carefully
-    # If mesh.sh is meant to be sourced, use '.'
-    # If it's meant to be executed as a separate script, use 'bash mesh.sh' or './mesh.sh'
-    # For a hardening script, executing it as a sub-process might be safer.
     if [[ -f "./mesh.sh" ]]; then
         bash ./mesh.sh # Execute as a sub-process
         if [[ -x /usr/local/bin/meshtastic ]]; then
