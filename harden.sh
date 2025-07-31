@@ -186,10 +186,14 @@ if [[ -f "/var/lib/dpkg/lock" ]]; then
 	fi
 fi
 
-#if [[ -e harden_meshtasticd && -d harden_meshtasticd ]]; then
-	#rm -rf harden_meshtasticd.last
-	#mv harden_meshtasticd harden_meshtasticd.last
-#fi
+
+## Do apt things
+apt update
+apt remove -y iptables exim4-base exim4-config exim4-daemon-light
+apt autoremove -y
+apt purge -y exim4-base exim4-config exim4-daemon-light
+apt install -y lunzip jq wget git
+
 # if needed, get the rest of the files in the repo for future usage
 if [[ -f ./mesh.sh || -f ./harden_meshtasticd/mesh.sh ]]; then
 	echo "Repo already cloned"
@@ -199,28 +203,6 @@ else
 	echo "Getting the repo"
 	git clone https://github.com/pinztrek/harden_meshtasticd
 fi
-
-# JAB tune this later, requires use of ASL3 code
-## Cleanup old kernels first, minimize size and number of DKMS builds needed
-#/usr/local/sbin/minimize-kernels \
-#       $(grep VERSION_CODENAME /etc/os-release | awk 'BEGIN {FS="="};{print $2}')
-
-# JAB replace with meshtasticd repos, use same as for balena
-## Install AllStarLink Repo
-#wget -O/tmp/asl-apt-repos.deb12_all.deb \
-#             https://repo.allstarlink.org/public/asl-apt-repos.deb12_all.deb
-#dpkg -i /tmp/asl-apt-repos.deb12_all.deb
-#rm -f /tmp/asl-apt-repos.deb12_all.deb
-
-## Do apt things
-apt update
-apt remove -y iptables exim4-base exim4-config exim4-daemon-light
-apt autoremove -y
-apt purge -y exim4-base exim4-config exim4-daemon-light
-# JAB tune for meshtasticd and tools like logrotate, Log2Ram, etc
-apt install -y lunzip jq wget git
-#apt install -y asl3 asl3-menu asl3-update-nodelist allmon3 asl3-pi-appliance \
-#             vim-nox
 
 
 if [[ "`grep zram /etc/fstab`" ]]; then
@@ -473,9 +455,9 @@ zram-config sync
 
 # Final reboot check based on REBOOT_FLAG
 #if (( $NOREBOOT )); then
-if (( false )); then # ignore for now
+if true; then # ignore for now
     #echo "Reboot suppressed by --noreboot option."
-    echo "Reboot not needed
+    echo "Reboot not needed"
 else
     echo "Rebooting in 5 seconds..."
     sleep 5

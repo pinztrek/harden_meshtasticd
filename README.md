@@ -32,7 +32,7 @@ There are several amateur related pi based systems which are hardened to improve
 * Optionally implement periodic system reboots
 * (Long term) Implement read only filesystems for /boot and any non-dynamic directories using standard raspbian approachs (pi-ro, pi-rw, etc) (In Progress, but is proving harder than initially thought)
 
-# Installation
+# Installation Examples
 * Use raspberry_pi_imager to download Raspberry Pi OS Lite 64bit image. Make sure and set your login and network if needed.
 * Boot the image, and log in
 * Get the harden script and execute as root:
@@ -47,6 +47,10 @@ There are several amateur related pi based systems which are hardened to improve
 * To install meshtasticd on a nebra, set the radio to a meshtoad, reasonable US defaults, and set the nodename to "monster":
 > wget -O harden.sh https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
 > sudo bash ./harden.sh -n -t -o monster
+
+* ==Most Common Nebra Example== To install meshtasticd on a nebra, set the radio to a nebrahat, reasonable US defaults, and set the nodename to "monster":
+> wget -O harden.sh https://raw.githubusercontent.com/pinztrek/harden_meshtasticd/refs/heads/main/harden.sh<br>
+> ==sudo bash ./harden.sh -n --nebrahat -o monster==
 
 
 # Command-Line Options
